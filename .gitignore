@@ -1,0 +1,21 @@
+# Ignore dependency folders
+node_modules/
+
+# Ignore local secret configurations
+.env
+.env.local
+
+# Ignore database files
+*.db
+*.db-journal
+
+# Ignore uploaded images (so your server uploads folder stays clean)
+backend/uploads/
+
+# Ignore production builds
+dist/
+build/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
