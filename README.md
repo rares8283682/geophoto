@@ -57,6 +57,12 @@ AI photo description (Gemini)
    ```
 3. Restart the backend. Descriptions are generated automatically on upload and appear in the photo modal.
 
+### AI Regeneration Notes
+
+- AI narration uses the free Google Gemini API key.
+- After running bulk regeneration or heavy usage, pressing **“Regenerate”** in the photo modal may return a quota‑limit error from Gemini.
+- The last saved narration is stored in the database and will keep displaying even if regeneration is temporarily blocked.
+- Occasionally, Google Gemini returns temporary 503 “high demand” errors; the backend retries automatically, but the Generate button may take a few seconds or fail intermittently.
 ---
 
 ## 📐 System Architecture

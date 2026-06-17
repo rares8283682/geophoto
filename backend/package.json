@@ -10,7 +10,8 @@
     "db:reset": "node -e \"const fs = require('fs'); if (fs.existsSync('geophotos.db')) fs.unlinkSync('geophotos.db'); require('./db').initDB().then(() => console.log('Database reset complete')).catch(console.error)\""
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/genai": "^2.8.0",
+    "@google/generative-ai": "^0.24.1",
     "@libsql/client": "^0.14.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

@@ -30,6 +30,10 @@ This service runs our Express API, handles secure authentication, performs geosp
 - **What was done**: Refactored the description generation script with retry handlers, database completion updates, file exist checks and clean exit routines.
 - **Benefits**: Allows developers to safely regenerate missing descriptions in bulk without hanging processes, rate-limit failures or path errors.
 
+#### AI Narration Quota Notes
+- AI regeneration uses the free Google Gemini API key.
+- After running bulk regeneration, pressing **“Regenerate”** in the UI may hit the daily quota and return an error.
+- The last saved narration remains stored in the database and continues to display correctly even if regeneration is temporarily blocked.
 ---
 
 ## 🤖 Autonomous Background Subagents & Daemons
