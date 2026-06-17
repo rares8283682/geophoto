@@ -12,20 +12,33 @@ export default function MapPage() {
   const [showUpload, setShowUpload]     = useState(false);
   const [searchQuery, setSearchQuery]   = useState('');
   const [sidebarOpen, setSidebarOpen]   = useState(true);
+  const [searchOnMove, setSearchOnMove] = useState(false);
+  const [currentBbox, setCurrentBbox]   = useState(null);
 
-  const loadPhotos = useCallback(async () => {
+  const loadPhotos = useCallback(async (bbox = null) => {
     try {
-      const { data } = await api.get('/photos');
+      const params = bbox ? { bbox } : {};
+      const { data } = await api.get('/photos', { params });
       setPhotos(data);
     } catch (err) {
       console.error('Failed to load photos:', err);
     }
   }, []);
 
-  useEffect(() => { loadPhotos(); }, [loadPhotos]);
+  useEffect(() => {
+    if (searchOnMove && currentBbox) {
+      loadPhotos(currentBbox);
+    } else {
+      loadPhotos();
+    }
+  }, [searchOnMove, currentBbox, loadPhotos]);
 
   function handlePhotoUploaded(newPhoto) {
-    setPhotos(prev => [newPhoto, ...prev]);
+    if (searchOnMove && currentBbox) {
+      loadPhotos(currentBbox);
+    } else {
+      loadPhotos();
+    }
     setShowUpload(false);
   }
 
@@ -213,7 +226,15 @@ export default function MapPage() {
 
         {/* Map Container */}
         <div style={{ flexGrow: 1, height: '100%', position: 'relative' }}>
-          <MapView photos={filteredPhotos} onMarkerClick={handleMarkerClick} selectedPhoto={selectedPhoto} sidebarOpen={sidebarOpen} />
+          <MapView
+            photos={filteredPhotos}
+            onMarkerClick={handleMarkerClick}
+            selectedPhoto={selectedPhoto}
+            sidebarOpen={sidebarOpen}
+            onBoundsChange={setCurrentBbox}
+            searchOnMove={searchOnMove}
+            setSearchOnMove={setSearchOnMove}
+          />
         </div>
 
       </div>
@@ -242,6 +263,10 @@ export default function MapPage() {
           photoId={selectedPhoto.id}
           onClose={() => setSelectedPhoto(null)}
           currentUser={user}
+          onDeleted={() => {
+            setSelectedPhoto(null);
+            loadPhotos(searchOnMove && currentBbox ? currentBbox : null);
+          }}
         />
       )}
     </div>

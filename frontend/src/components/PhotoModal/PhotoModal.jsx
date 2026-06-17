@@ -10,7 +10,7 @@ function formatDate(dateStr) {
   });
 }
 
-export default function PhotoModal({ photoId, onClose, currentUser }) {
+export default function PhotoModal({ photoId, onClose, currentUser, onDeleted }) {
   const [photo, setPhoto]       = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -21,6 +21,8 @@ export default function PhotoModal({ photoId, onClose, currentUser }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [copied, setCopied]           = useState(false);
   const [isSpeaking, setIsSpeaking]   = useState(false);
+  const [deleting, setDeleting]       = useState(false);
+  const [regeneratingAI, setRegeneratingAI] = useState(false);
 
   // Poll for AI description while it's missing
   const pollRef = useRef(null);
@@ -107,6 +109,35 @@ export default function PhotoModal({ photoId, onClose, currentUser }) {
     }
   }
 
+  async function handleDeletePhoto() {
+    if (!window.confirm('Are you sure you want to delete this photo? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/photos/${photoId}`);
+      if (onDeleted) {
+        onDeleted(photoId);
+      } else {
+        onClose();
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete photo');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function handleRegenerateAI() {
+    setRegeneratingAI(true);
+    try {
+      const { data } = await api.post(`/photos/${photoId}/regenerate-description`);
+      setPhoto(prev => ({ ...prev, ai_description: data.ai_description }));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to regenerate AI description');
+    } finally {
+      setRegeneratingAI(false);
+    }
+  }
+
   async function handleAddComment(e) {
     e.preventDefault();
     if (!newComment.trim() || newComment.length > 250) return;
@@ -122,14 +153,48 @@ export default function PhotoModal({ photoId, onClose, currentUser }) {
     }
   }
 
+  const isOwner = currentUser && photo && Number(currentUser.id) === Number(photo.user_id);
+
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="photo-modal-title" style={{ maxWidth: '640px' }}>
-        <div className="modal-header">
+        <div className="modal-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 className="modal-title" id="photo-modal-title">
             {loadingPhoto ? 'Loading…' : (photo?.original_name || 'Photo')}
           </h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close modal">×</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {isOwner && (
+              <button
+                onClick={handleDeletePhoto}
+                disabled={deleting}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.borderColor = '#ef4444';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                }}
+              >
+                {deleting ? '🗑️ Deleting...' : '🗑️ Delete Photo'}
+              </button>
+            )}
+            <button className="modal-close" onClick={onClose} aria-label="Close modal" style={{ position: 'static', margin: 0 }}>×</button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -200,12 +265,14 @@ export default function PhotoModal({ photoId, onClose, currentUser }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '13px', fontWeight: 700, color: '#a5b4fc', letterSpacing: '0.5px' }}>
                   <span>✨ AI NARRATION</span>
                   
-                  {/* Speech Narration Button */}
-                  {photo.ai_description && (
+                  <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                    {/* Regenerate AI Description */}
                     <button
-                      onClick={handleToggleSpeech}
+                      type="button"
+                      onClick={handleRegenerateAI}
+                      disabled={regeneratingAI}
                       style={{
-                        background: isSpeaking ? '#ef4444' : 'rgba(255,255,255,0.06)',
+                        background: 'rgba(255,255,255,0.06)',
                         border: '1px solid rgba(255,255,255,0.1)',
                         color: '#ffffff',
                         padding: '4px 8px',
@@ -214,17 +281,41 @@ export default function PhotoModal({ photoId, onClose, currentUser }) {
                         fontSize: '11px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
+                        gap: '4px',
                         fontWeight: 600,
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
                       }}
-                      title={isSpeaking ? 'Stop voice reader' : 'Listen to AI narration'}
+                      title="Regenerate description with AI"
                     >
-                      {isSpeaking ? '⏹ Stop Voice' : '🔊 Listen Description'}
+                      {regeneratingAI ? '🔄 Generating...' : (photo.ai_description ? '🔄 Regenerate' : '✨ Generate')}
                     </button>
-                  )}
 
-                  {!photo.ai_description && (
+                    {/* Speech Narration Button */}
+                    {photo.ai_description && (
+                      <button
+                        onClick={handleToggleSpeech}
+                        style={{
+                          background: isSpeaking ? '#ef4444' : 'rgba(255,255,255,0.06)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: '#ffffff',
+                          padding: '4px 8px',
+                          borderRadius: '20px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontWeight: 600,
+                          transition: 'all 0.2s ease'
+                        }}
+                        title={isSpeaking ? 'Stop voice reader' : 'Listen to AI narration'}
+                      >
+                        {isSpeaking ? '⏹ Stop Voice' : '🔊 Listen Description'}
+                      </button>
+                    )}
+                  </div>
+
+                  {!photo.ai_description && !regeneratingAI && (
                     <span className="badge badge-accent">Generating…</span>
                   )}
                 </div>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useState, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -43,6 +43,32 @@ function MapController({ selectedPhoto, sidebarOpen }) {
   return null;
 }
 
+// Intercept map movement to query bounds
+function MapBoundsListener({ onBoundsChange, active }) {
+  const map = useMap();
+
+  const handleMoveEnd = useCallback(() => {
+    if (!active) return;
+    const bounds = map.getBounds();
+    const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+    onBoundsChange(bbox);
+  }, [map, active, onBoundsChange]);
+
+  useEffect(() => {
+    if (active) {
+      handleMoveEnd();
+    } else {
+      onBoundsChange(null);
+    }
+  }, [active, handleMoveEnd, onBoundsChange]);
+
+  useMapEvents({
+    moveend: handleMoveEnd,
+  });
+
+  return null;
+}
+
 function PhotoMarkers({ photos, onMarkerClick, selectedPhoto }) {
   return (
     <MarkerClusterGroup chunkedLoading maxClusterRadius={60}>
@@ -63,7 +89,7 @@ function PhotoMarkers({ photos, onMarkerClick, selectedPhoto }) {
   );
 }
 
-export default function MapView({ photos, onMarkerClick, selectedPhoto, sidebarOpen }) {
+export default function MapView({ photos, onMarkerClick, selectedPhoto, sidebarOpen, onBoundsChange, searchOnMove, setSearchOnMove }) {
   // Available map styles
   const mapThemes = {
     dark: {
@@ -121,6 +147,47 @@ export default function MapView({ photos, onMarkerClick, selectedPhoto, sidebarO
         ))}
       </div>
 
+      {/* Floating Viewport Search Toggle Switch */}
+      <div style={{
+        position: 'absolute',
+        top: '80px',
+        right: '20px',
+        zIndex: 1000,
+        background: 'rgba(23, 23, 23, 0.85)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '12px',
+        padding: '10px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        color: '#ffffff',
+        fontSize: '12.5px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        userSelect: 'none',
+        transition: 'all 0.2s ease'
+      }}
+      onClick={() => setSearchOnMove(!searchOnMove)}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)'}
+      >
+        <input
+          type="checkbox"
+          checked={searchOnMove}
+          onChange={() => {}} // handled by parent click
+          style={{
+            cursor: 'pointer',
+            accentColor: '#6366f1',
+            margin: 0,
+            width: '16px',
+            height: '16px'
+          }}
+        />
+        <span>🔍 Search map viewport</span>
+      </div>
+
       <MapContainer
         center={[20, 0]}
         zoom={3}
@@ -136,6 +203,7 @@ export default function MapView({ photos, onMarkerClick, selectedPhoto, sidebarO
         />
         <PhotoMarkers photos={photos} onMarkerClick={onMarkerClick} selectedPhoto={selectedPhoto} />
         <MapController selectedPhoto={selectedPhoto} sidebarOpen={sidebarOpen} />
+        <MapBoundsListener onBoundsChange={onBoundsChange} active={searchOnMove} />
       </MapContainer>
     </div>
   );

@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "ai:regen": "node regenerate_descriptions.js",
+    "db:reset": "node -e \"const fs = require('fs'); if (fs.existsSync('geophotos.db')) fs.unlinkSync('geophotos.db'); require('./db').initDB().then(() => console.log('Database reset complete')).catch(console.error)\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

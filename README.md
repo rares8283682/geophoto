@@ -59,30 +59,147 @@ AI photo description (Gemini)
 
 ---
 
-## Architecture
+## 📐 System Architecture
+
+The GeoPhoto application is engineered as a highly responsive, decoupled client-server architecture designed to minimize latency and server overhead while handling intensive media assets and geo-coordinates.
+
+```mermaid
+graph TD
+    %% Nodes
+    Client[React SPA client-side]
+    API[Express API server]
+    LibSQL[(LibSQL/SQLite DB)]
+    FS[(Local Uploads Storage)]
+    Gemini[Google Gemini API]
+    SMTP[Nodemailer cached SMTP]
+
+    %% Client Interactions
+    Client -->|REST API, JWT, Multipart Forms| API
+    Client -->|Local EXIF Extract| Client
+
+    %% API Interactions
+    API -->|Read/Write SQL Queries| LibSQL
+    API -->|Save original uploaded images| FS
+    API -->|Background AI Narration request| Gemini
+    API -->|Send email dispatch| SMTP
+```
+
+---
+
+## 🗄️ Database Schema & Indexing
+
+The data layer utilizes LibSQL (an open-source, serverless-friendly SQLite fork) to store users, photos, and comments. This database provides native speed, acid compliance, and pure-JS portability without compile-time bindings.
 
 ```
-Browser (React + Leaflet)
-        │  REST (JSON + multipart/form-data)
-        ▼
-  Express.js API (Node 18+)
-  ├── /auth        signup, login → JWT
-  ├── /photos      upload, list, get, delete
-  ├── /comments    list, post
-  └── /uploads/*   static image files
-        │
-        ├── SQLite DB (libsql/client — file:geophotos.db)
-        └── /uploads directory (images on disk)
+┌─────────────────────────────────┐           ┌─────────────────────────────────┐
+│              users              │           │             photos              │
+├─────────────────────────────────┤           ├─────────────────────────────────┤
+│ id (PK, AUTOINCREMENT)  [INT]   │◄────┐     │ id (PK, AUTOINCREMENT)  [INT]   │◄───┐
+│ email (UNIQUE, INDEXED) [TEXT]  │     └────┼│ user_id (FK, INDEXED)   [INT]   │    │
+│ password_hash           [TEXT]  │           │ filename                 [TEXT]  │    │
+│ name                    [TEXT]  │           │ original_name            [TEXT]  │    │
+│ username (UNIQUE)       [TEXT]  │           │ lat                      [REAL]  │    │
+│ created_at              [DATETIME]          │ lng                      [REAL]  │    │
+└─────────────────────────────────┘           │ ai_description           [TEXT]  │    │
+                                              │ created_at              [DATETIME]    │
+                                              └─────────────────────────────────┘    │
+                                                                                     │
+                                              ┌─────────────────────────────────┐    │
+                                              │            comments             │    │
+                                              ├─────────────────────────────────┤    │
+                                              │ id (PK, AUTOINCREMENT)  [INT]   │    │
+                                              │ photo_id (FK, INDEXED)  [INT]   │────┘
+                                              │ user_id (FK)            [INT]   │
+                                              │ body                     [TEXT]  │
+                                              │ created_at              [DATETIME]
+                                              └─────────────────────────────────┘
 ```
 
-### Key design decisions
+### ⚡ Optimization Indexes
+To ensure sub-millisecond query execution as the photo count grows:
+1. `idx_photos_location ON photos(lat, lng)`: Crucial for rapid bounding-box (`bbox`) viewport filtering.
+2. `idx_photos_user ON photos(user_id)`: Speeds up profile views and owner checks.
+3. `idx_comments_photo ON comments(photo_id)`: Optimizes retrieval of nested photo discussions.
 
-- **`@libsql/client`** (pure JS SQLite driver) — no native compilation needed, works on any platform
-- **EXIF parsed client-side** with `exifr` — no server dependency, instant feedback
-- **AI description fire-and-forget** — upload response is instant; the modal polls every 3s until the description arrives
-- **`react-leaflet-cluster`** — handles 10k+ markers at scale by grouping them at low zoom levels
-- **Dark CartoDB tiles** — matches the app's dark theme seamlessly
-- **Spatial index** on `photos(lat, lng)` + optional `?bbox=` query parameter for viewport-based fetching at scale
+---
+
+## 🔄 Core Data Flows
+
+### 1. Photo Upload & AI Narration Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Client Browser
+    participant API as Express API
+    participant DB as SQLite DB
+    participant Gemini as Gemini AI API
+
+    User->>User: Parse GPS coordinates client-side (exifr)
+    User->>API: POST /photos (multipart: image + lat + lng)
+    API->>API: Save image file & generate filename
+    API->>DB: INSERT into photos (user_id, filename, lat, lng)
+    API-->>User: 201 Created (photo metadata, ai_description: null)
+    
+    Note over API, Gemini: Fire-and-Forget AI Generation
+    API->>Gemini: Request description (Gemini-1.5-flash with image bytes)
+    
+    loop Poll/Refresh Check
+        User->>API: GET /photos/:id
+        API-->>User: Return status (checks if ai_description populated)
+    end
+
+    Gemini-->>API: Description Generated
+    API->>DB: UPDATE photos SET ai_description = description WHERE id = photo_id
+```
+
+### 2. Viewport-Based Loading Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Map Interface
+    participant API as Express API
+    participant DB as SQLite DB
+
+    User->>User: Drag or zoom map viewport
+    Note over User: Bounds changed (south, west, north, east)
+    User->>API: GET /photos?bbox=south,west,north,east
+    API->>DB: SELECT * FROM photos WHERE lat BETWEEN south AND north AND lng BETWEEN west AND east
+    DB-->>API: Return rows matching query
+    API-->>User: 200 OK (filtered array of photos)
+    User->>User: Render photo markers (Leaflet Clusters)
+```
+
+---
+
+## ⚡ Scaling to 10k+ Photos (Strategist Blueprint)
+
+To maintain a frame rate of **60 FPS** on the map and **<100ms API response times** with 10k+ photos:
+
+1. **Leaflet Marker Clustering:** Directly loading 10,000 DOM elements into Leaflet crashes modern browsers. We use `react-leaflet-cluster` which groups markers based on proximity.
+2. **Bounding Box Viewport Queries (`bbox`):** Only fetch and display photos inside the active map bounds. When the user pans, the client requests `GET /photos?bbox=lat_min,lng_min,lat_max,lng_max`.
+3. **Database Migration (PostgreSQL + PostGIS):** As spatial dataset sizes grow, SQLite's B-Trees become inefficient. We plan to migrate to PostgreSQL and utilize:
+   * **`GEOMETRY(Point, 4326)`** fields.
+   * **`GIST (Generalized Search Tree)`** spatial index for 100x faster geographic bounding-box queries.
+   * Query syntax: `ST_Contains(ST_MakeEnvelope(west, south, east, north, 4326), geom)`.
+4. **Image Processing & CDNs:** 
+   * **Sharp Integration:** Resize original uploads on the server into 300px thumbnails (for map popup pins) and 1200px preview images (for the modal).
+   * **S3 + CDN Storage:** Offload media delivery from the Node.js process to AWS S3, fronted by a CDN (CloudFront/Cloudflare) caching images aggressively.
+
+---
+
+## 🛡️ Security Architecture
+
+1. **JWT & Silent Session Auto-Renewal:**
+   * JWTs are signed with a 7-day expiration.
+   * **Auto-Renewal:** Inside the [auth.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/middleware/auth.js) middleware, if a valid token is found with **< 2 days** of life remaining, a new token is silently signed and sent back in the `X-Refresh-Token` header.
+   * Frontend [api.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/api.js) automatically monitors this header and overwrites local storage, maintaining sessions transparently.
+2. **Granular Errors:** Provides clear exception reasons (e.g. `TOKEN_EXPIRED`, `TOKEN_INVALID`) allowing the client-side code to redirect expired sessions without breaking user flows.
+3. **Memory-Safe Rate Limiting:**
+   * Utilizes an in-memory IP request Map.
+   * **Garbage Collector:** Runs every 5 minutes to sweep and delete expired IPs, preventing memory leaks under high traffic.
+   * **Test Whitelist:** Loopback addresses (`127.0.0.1`, `::1`) and `NODE_ENV === 'test'` configurations bypass throttling to ensure testing pipelines never trigger rate limits.
+4. **Owner-Check Restrictions:**
+   * Photo deletions (`DELETE /photos/:id`) and AI regenerations (`POST /photos/:id/regenerate-description`) enforce token-ownership verification.
 
 ---
 
