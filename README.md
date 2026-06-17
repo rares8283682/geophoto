@@ -251,3 +251,43 @@ AI | Gemini API key as env var |
 3. **Thumbnails** — serve a resized 400px thumbnail for markers, full image on demand (use Sharp or ImageMagick)
 4. **CDN** — serve `/uploads` from a CDN (CloudFront) with aggressive cache headers
 5. **PostGIS** — migrate from SQLite to PostgreSQL + PostGIS for true spatial queries at scale
+
+---
+
+## 📅 Project Implementation Time Estimation
+
+To deliver a fully tested, secure and scalable version of this application in a real production environment, we estimate the following workload:
+
+### Phase 1: Setup & Database Schema (2 hours)
+* Initialize workspace structures, package configurations and database tables.
+* Configure environment profiles and indexing bounds.
+
+### Phase 2: Backend REST APIs (8 hours)
+* Develop routes for user registration, login, photo uploads and comments.
+* Integrate Multer image parsing, Sharp resizing and static routing directories.
+
+### Phase 3: Authentication & Security Controls (6 hours)
+* Write password hashing algorithms, JWT validation logic and the silent token renewal middleware.
+* Establish in-memory rate-limiter maps and clean-up intervals.
+
+### Phase 4: Frontend Development & CSS Design (10 hours)
+* Build the core authentication page tabs, upload forms and details viewport.
+* Code the custom responsive CSS design system including glassmorphic effects.
+
+### Phase 5: Map Integration & Clustering (6 hours)
+* Build Leaflet markers, map controls and dynamic coordinate selectors.
+* Connect cluster groupings and moveend viewport search bounds.
+
+### Phase 6: AI Features & Accessibility (4 hours)
+* Integrate the Google Gemini Vision API handler.
+* Develop the browser text-to-speech audio reader.
+
+### Phase 7: Testing & CI pipelines (6 hours)
+* Set up Vitest, MSW api interceptors and mock setup engines.
+* Code 13 unit tests for authorization tabs, file uploads and details popups.
+
+### Phase 8: Cloud Deployment (3 hours)
+* Build Docker assets and link persistent Render volumes.
+* Deploy web CDNs and configure domain records.
+
+**Total Project Estimate**: 45 Hours
