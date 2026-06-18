@@ -87,12 +87,10 @@ export default function AuthPage() {
       try {
         const { data } = await api.post('/auth/send-signup-code', { email });
         setPendingSignupData({ email, password, name, username });
-        let msg = 'A verification code has been sent to your email!';
-        if (data.previewUrl) {
-          msg += ` (Test link: ${data.previewUrl})`;
-          console.log('GeoPhoto Test Email link:', data.previewUrl);
-        }
-        setSuccess(msg);
+        setSuccess({
+          text: 'A verification code has been sent to your email!',
+          link: data.previewUrl
+        });
         setTab('verify');
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to send verification code');
@@ -126,12 +124,10 @@ export default function AuthPage() {
       try {
         const { data } = await api.post('/auth/send-reset-code', { email });
         setResetEmail(email);
-        let msg = 'A reset code has been sent to your email!';
-        if (data.previewUrl) {
-          msg += ` (Test link: ${data.previewUrl})`;
-          console.log('GeoPhoto Test Email link:', data.previewUrl);
-        }
-        setSuccess(msg);
+        setSuccess({
+          text: 'A reset code has been sent to your email!',
+          link: data.previewUrl
+        });
         setTab('reset');
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to request reset code');
@@ -155,7 +151,10 @@ export default function AuthPage() {
           password: newPassword, 
           code: userEnteredCode 
         });
-        setSuccess('Password reset successfully! You can now log in.');
+        setSuccess({
+          text: 'Password reset successfully! You can now log in.',
+          link: null
+        });
         setTab('login');
         setPassword('');
       } catch (err) {
@@ -385,7 +384,21 @@ export default function AuthPage() {
           )}
 
           {error && <p className="error-msg" style={{ margin: '12px 0 0' }}>{error}</p>}
-          {success && <p style={{ color: '#2ecc71', fontSize: '12px', marginTop: '12px', textAlign: 'center', fontWeight: 500 }}>{success}</p>}
+          {success && (
+            <div style={{ color: '#2ecc71', fontSize: '12px', marginTop: '12px', textAlign: 'center', fontWeight: 500 }}>
+              <p style={{ margin: '0 0 4px 0' }}>{typeof success === 'string' ? success : success.text}</p>
+              {success.link && (
+                <a
+                  href={success.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#818cf8', textDecoration: 'underline', display: 'inline-block', fontWeight: 600 }}
+                >
+                  Click here to view test email ✉️
+                </a>
+              )}
+            </div>
+          )}
 
           <button
             id="auth-submit"
