@@ -65,6 +65,32 @@ AI photo description (Gemini)
 - Occasionally, Google Gemini returns temporary 503 “high demand” errors; the backend retries automatically, but the Generate button may take a few seconds or fail intermittently.
 ---
 
+## 📧 Email Verification & SMTP Setup
+
+The application features a secure, token-based verification system for **Signups (Email confirmation)** and **Password Resets**. To make it easy to run and test immediately, the email system works in two modes:
+
+### 1. Developer Fallback Mode (Zero Configuration)
+If you do not add email settings to your `.env` file:
+* The backend automatically intercepts outbound mail and generates a temporary, sandboxed mailbox on **Ethereal Email**.
+* A clickable **Test link** is printed in your terminal and **displayed directly on your screen** in green text.
+* Simply click the link in your browser to view the email, read the message, and copy the 8-digit verification code!
+
+### 2. Real Email Mode (Gmail Setup)
+To send real verification emails to users' inboxes:
+1. Turn **ON** Two-Step Verification in your Google Account settings.
+2. Go to **[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)** and generate a new App Password (e.g. name it "GeoPhoto").
+3. Copy the 16-character password.
+4. Add these variables to your **`backend/.env`** file:
+   ```ini
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your-gmail-address@gmail.com
+   SMTP_PASS=your-16-char-app-password
+   ```
+5. Restart your backend server. Codes will now arrive in real user inboxes!
+
+---
+
 ## 📐 System Architecture
 
 The GeoPhoto application is engineered as a highly responsive, decoupled client-server architecture designed to minimize latency and server overhead while handling intensive media assets and geo-coordinates.
