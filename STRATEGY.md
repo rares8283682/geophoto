@@ -52,14 +52,6 @@ flowchart TD
   API -->|"verification/reset email"| Email
 ```
 
-- Client: React SPA.
-- API: Express REST API.
-- DB: PostgreSQL + PostGIS in production.
-- Storage: object storage + CDN for original images and thumbnails.
-- Jobs: background queue for asynchronous AI work.
-- AI: vision model for photo descriptions.
-- Email: transactional provider for verification and password reset emails.
-
 - Browser calls the API with JWT-authenticated HTTPS requests.
 - Browser loads image URLs directly from object storage/CDN.
 - API stores users, photos, comments, and coordinates in PostgreSQL/PostGIS.
