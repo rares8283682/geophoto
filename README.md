@@ -1,20 +1,20 @@
 # GeoPhoto
 
-GeoPhoto is a full-stack web application for uploading geotagged photos, visualizing them on an interactive map, and discussing each image through comments. It includes JWT authentication, email verification, EXIF GPS extraction, manual map pin placement, clustered map markers, and optional Gemini-powered image descriptions.
+GeoPhoto is a full-stack web application for uploading geotagged photos, visualizing them on an interactive map and discussing each image through comments. It includes JWT authentication, email verification, EXIF GPS extraction, manual map pin placement, clustered map markers and optional Gemini-powered image descriptions.
 
 This repository was built for the HyLight fullstack internship technical test. The production architecture and scaling plan are documented separately in [STRATEGY.md](./STRATEGY.md).
 
 ## Features
 
-- Sign up, email verification, login, logout, and password reset
+- Sign up, email verification, login, logout and password reset
 - JWT-protected photo upload and comment creation
 - Browser-side EXIF GPS extraction with manual coordinate fallback
 - Optional AI location estimation when GPS metadata is missing
 - Interactive Leaflet map with marker clustering
 - Viewport-based photo fetching through `GET /photos?bbox=...`
-- Photo detail modal with image preview, coordinates, AI description, comments, and owner delete action
+- Photo detail modal with image preview, coordinates, AI description, comments and owner delete action
 - Optional Gemini image description generation on upload and manual regeneration
-- Frontend unit tests for authentication, upload, and photo detail workflows
+- Frontend unit tests for authentication, upload and photo detail workflows
 
 ## Tech Stack
 
@@ -118,6 +118,6 @@ geophotos/
 
 ## Notes For Reviewers
 
-- The current implementation stores uploaded files on local disk for simplicity. `STRATEGY.md` explains the production migration to object storage, CDN delivery, thumbnails, and PostGIS.
-- AI is optional. Without `GEMINI_API_KEY`, the app still works end to end: users can sign up, upload photos with coordinates, view them on the map, and comment.
+- The current implementation stores uploaded files on local disk for simplicity. `STRATEGY.md` explains the production migration to object storage, CDN delivery, thumbnails and PostGIS.
+- AI is optional. Without `GEMINI_API_KEY`, the app still works end to end: users can sign up, upload photos with coordinates, view them on the map and comment.
 - The app already uses marker clustering and optional viewport filtering to keep the map usable as the dataset grows.
