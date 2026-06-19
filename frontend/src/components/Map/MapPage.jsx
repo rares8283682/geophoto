@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api } from '../../api';
+import { api, API_BASE_URL } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import MapView from './MapView';
 import UploadModal from '../Upload/UploadModal';
@@ -33,7 +33,7 @@ export default function MapPage() {
     }
   }, [searchOnMove, currentBbox, loadPhotos]);
 
-  function handlePhotoUploaded(newPhoto) {
+  function handlePhotoUploaded() {
     if (searchOnMove && currentBbox) {
       loadPhotos(currentBbox);
     } else {
@@ -51,8 +51,8 @@ export default function MapPage() {
     const query = searchQuery.toLowerCase();
     return (
       (photo.original_name && photo.original_name.toLowerCase().includes(query)) ||
-      (photo.description && photo.description.toLowerCase().includes(query)) ||
-      (photo.username && photo.username.toLowerCase().includes(query))
+      (photo.ai_description && photo.ai_description.toLowerCase().includes(query)) ||
+      (photo.author_email && photo.author_email.toLowerCase().includes(query))
     );
   });
 
@@ -66,7 +66,7 @@ export default function MapPage() {
         </div>
 
         {/* Global Search Box in Navbar */}
-        <div className="navbar-search" style={{ flexGrow: 1, maxLength: '400px', display: 'flex', justifyContent: 'center' }}>
+        <div className="navbar-search" style={{ flexGrow: 1, maxWidth: '400px', display: 'flex', justifyContent: 'center' }}>
           <input
             type="text"
             placeholder="Search photos, descriptions or users..."
@@ -136,7 +136,7 @@ export default function MapPage() {
               </div>
             ) : (
               filteredPhotos.map(photo => {
-                const imgSrc = `http://localhost:3001/uploads/${photo.filename}`;
+                const imgSrc = `${API_BASE_URL}/uploads/${photo.filename}`;
                 const isSelected = selectedPhoto && selectedPhoto.id === photo.id;
                 return (
                   <div

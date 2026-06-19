@@ -3,11 +3,10 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-lea
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-const API_BASE = 'http://localhost:3001';
+import { API_BASE_URL } from '../../api';
 
 function makePhotoIcon(photo, isSelected) {
-  const imgSrc = `${API_BASE}/uploads/${photo.filename}`;
+  const imgSrc = `${API_BASE_URL}/uploads/${photo.filename}`;
   return L.divIcon({
     html: `
       <div class="photo-marker-wrap ${isSelected ? 'selected-marker' : ''}" title="${photo.original_name}">

@@ -6,6 +6,7 @@ import { api } from '../../api'
 
 // Mock the API client
 vi.mock('../../api', () => ({
+  API_BASE_URL: 'http://localhost:3001',
   api: {
     get: vi.fn(),
     post: vi.fn(),

@@ -11,7 +11,6 @@ export default function AuthPage() {
   const [username, setUsername] = useState('');
   
   // Verification states
-  const [verificationCode, setVerificationCode] = useState('');
   const [userEnteredCode, setUserEnteredCode]   = useState('');
   const [pendingSignupData, setPendingSignupData] = useState(null);
   const [resetEmail, setResetEmail]             = useState('');
@@ -61,11 +60,6 @@ export default function AuthPage() {
       setEmailWarning('');
     }
   };
-
-  // Generate a random 8-digit verification code
-  function generate8DigitCode() {
-    return Math.floor(10000000 + Math.random() * 90000000).toString();
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();

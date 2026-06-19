@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { api } from '../../api';
-
-const API_BASE = 'http://localhost:3001';
+import { api, API_BASE_URL } from '../../api';
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString(undefined, {
@@ -208,7 +206,7 @@ export default function PhotoModal({ photoId, onClose, currentUser, onDeleted })
               <div style={{ position: 'relative', width: '100%', height: '340px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {!imageLoaded && <div className="spinner" style={{ position: 'absolute' }} />}
                 <img
-                  src={`${API_BASE}/uploads/${photo.filename}`}
+                  src={`${API_BASE_URL}/uploads/${photo.filename}`}
                   alt={photo.original_name}
                   onLoad={() => setImageLoaded(true)}
                   style={{

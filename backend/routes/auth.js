@@ -1,20 +1,49 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { query, run } = require('../db');
 const { JWT_SECRET, authMiddleware } = require('../middleware/auth');
 const { sendEmail } = require('../utils/mailer');
 
 const SALT_ROUNDS = process.env.NODE_ENV === 'production' ? 12 : 10;
+const CODE_TTL_MS = 10 * 60 * 1000;
 
 const router = express.Router();
 
 // In-memory verification code stores
-const signupCodes = new Map(); 
-const resetCodes  = new Map(); 
+const signupCodes = new Map();
+const resetCodes  = new Map();
 
 function generate8DigitCode() {
-  return Math.floor(10000000 + Math.random() * 90000000).toString();
+  return crypto.randomInt(10000000, 100000000).toString();
+}
+
+function saveCode(store, email, code) {
+  store.set(email.toLowerCase(), {
+    code,
+    expiresAt: Date.now() + CODE_TTL_MS,
+  });
+}
+
+function isValidCode(store, email, submittedCode) {
+  const key = email.toLowerCase();
+  const record = store.get(key);
+
+  if (!record || record.expiresAt < Date.now()) {
+    store.delete(key);
+    return false;
+  }
+
+  if (record.code.toString() !== submittedCode.toString()) {
+    return false;
+  }
+
+  return true;
+}
+
+function deleteCode(store, email) {
+  store.delete(email.toLowerCase());
 }
 
 // ── POST /auth/send-signup-code ──────────────────────────────────────────────
@@ -29,12 +58,12 @@ router.post('/send-signup-code', async (req, res) => {
     }
 
     const code = generate8DigitCode();
-    signupCodes.set(email.toLowerCase(), code);
+    saveCode(signupCodes, email, code);
 
     const emailResult = await sendEmail({
       to: email,
       subject: 'GeoPhoto - Confirm Your Email',
-      text: `Hello,\n\nYour 8-digit verification code is: ${code}\n\nUse this code to complete your signup process.\n\n---\nHi HyLight team, I hope I will get the job! 😊`,
+      text: `Hello,\n\nYour 8-digit verification code is: ${code}\n\nUse this code to complete your signup process.`,
     });
 
     res.json({ 
@@ -59,12 +88,12 @@ router.post('/send-reset-code', async (req, res) => {
     }
 
     const code = generate8DigitCode();
-    resetCodes.set(email.toLowerCase(), code);
+    saveCode(resetCodes, email, code);
 
     const emailResult = await sendEmail({
       to: email,
       subject: 'GeoPhoto - Reset Your Password',
-      text: `Hello,\n\nYour password reset code is: ${code}\n\nUse this code to choose a new password.\n\n---\nHi HyLight team, I hope I will get the job! 😊`,
+      text: `Hello,\n\nYour password reset code is: ${code}\n\nUse this code to choose a new password.`,
     });
 
     res.json({ 
@@ -86,11 +115,7 @@ router.post('/signup', async (req, res) => {
     }
 
     // Verify code on backend
-    const savedCode = signupCodes.get(email.toLowerCase());
-    console.log('[Signup Debug] Checking email:', email.toLowerCase());
-    console.log('[Signup Debug] Entered code:', code, typeof code);
-    console.log('[Signup Debug] Saved code:', savedCode, typeof savedCode);
-    if (!savedCode || savedCode.toString() !== code.toString()) {
+    if (!isValidCode(signupCodes, email, code)) {
       return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
 
@@ -115,9 +140,7 @@ router.post('/signup', async (req, res) => {
       'INSERT INTO users (email, password_hash, name, username) VALUES (?, ?, ?, ?)',
       [email.toLowerCase(), hash, name || null, username ? username.toLowerCase() : null]
     );
-
-    // Clear verification code
-    signupCodes.delete(email.toLowerCase());
+    deleteCode(signupCodes, email);
 
     const token = jwt.sign(
       { id: lastInsertRowid, email: email.toLowerCase() },
@@ -162,11 +185,7 @@ router.post('/reset-password', async (req, res) => {
     }
 
     // Verify reset code
-    const savedCode = resetCodes.get(email.toLowerCase());
-    console.log('[Reset Debug] Checking email:', email.toLowerCase());
-    console.log('[Reset Debug] Entered code:', code, typeof code);
-    console.log('[Reset Debug] Saved code:', savedCode, typeof savedCode);
-    if (!savedCode || savedCode.toString() !== code.toString()) {
+    if (!isValidCode(resetCodes, email, code)) {
       return res.status(400).json({ error: 'Invalid or expired reset code' });
     }
 
@@ -179,9 +198,7 @@ router.post('/reset-password', async (req, res) => {
       'UPDATE users SET password_hash = ? WHERE email = ?',
       [hash, email.toLowerCase()]
     );
-
-    // Clear reset code
-    resetCodes.delete(email.toLowerCase());
+    deleteCode(resetCodes, email);
 
     res.json({ message: 'Password updated successfully' });
   } catch (err) {

@@ -130,12 +130,6 @@ async function sendEmail({ to, subject, text }) {
         text-align: center;
         line-height: 1.5;
       }
-      .signature {
-        margin-top: 12px;
-        font-size: 12px;
-        color: #a89aff;
-        font-weight: 500;
-      }
     </style>
   </head>
   <body>
@@ -157,7 +151,6 @@ async function sendEmail({ to, subject, text }) {
       
       <div class="footer">
         <p>This is an automated notification from GeoPhoto.</p>
-        <p class="signature">Hi HyLight team, I hope I will get the job! 😊</p>
       </div>
     </div>
   </body>
