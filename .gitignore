@@ -19,3 +19,6 @@ build/
 # Ignore OS files
 .DS_Store
 Thumbs.db
+
+# Ignore generated files
+backend/debug-emails.json
