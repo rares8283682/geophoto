@@ -242,25 +242,24 @@ For production I would also add file upload security tests, rate-limit tests and
 
 ## 9. Realistic Time Estimate
 
+The exercise gives an estimated time of 4 hours. For that timeframe, I would focus on delivering a working end-to-end prototype first, then document the production improvements separately. A polished version with email verification, tests, AI support and cleaner UX can reasonably take closer to 8-10 hours.
+
 | Step | Estimate |
 | --- | ---: |
-| Project setup, repo structure, environment files | 1.5h |
-| Database schema and indexes | 1.5h |
-| Authentication, email verification, password reset | 5h |
-| Photo upload API, file validation, image rotation | 4h |
-| Comments API and owner-only delete | 2h |
-| AI description integration | 3h |
-| React authentication UI | 4h |
-| Upload modal with EXIF extraction and manual map pin | 5h |
-| Main map, markers, clustering, bbox filtering | 5h |
-| Photo detail modal and comments UI | 4h |
-| Testing and bug fixing | 5h |
-| Production deployment setup | 3h |
-| Documentation and demo preparation | 2h |
+| Project setup, environment files, and package installation | 0.5h |
+| Database schema and basic API structure | 1h |
+| Authentication flow | 1.5h |
+| Photo upload API with coordinate storage | 1h |
+| React authentication screens | 1h |
+| Upload modal with EXIF/manual coordinates | 1.5h |
+| Leaflet map, markers, and photo modal | 1.5h |
+| Comments flow | 0.75h |
+| Optional AI description integration | 0.75h |
+| Testing, bug fixing, and README cleanup | 1h |
 
-Total realistic production-quality estimate: about 45 hours.
+Total realistic estimate for this submitted prototype: about 10 hours.
 
-For a 4-hour technical-test version, I would intentionally reduce scope: simple auth, local storage, SQLite, Leaflet markers, upload, map display, comments and a clean README. Then I would document the production improvements clearly.
+If strictly limited to 4 hours, I would reduce scope to the minimum required flow: basic signup/login, local SQLite storage, photo upload with manual coordinates, Leaflet markers, photo detail view, comments and concise setup documentation. I would leave email verification, AI generation, clustering, password reset and deeper tests as documented production improvements.
 
 ## 10. Current Implementation Versus Production Target
 
