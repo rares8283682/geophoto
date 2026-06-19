@@ -9,8 +9,8 @@ React/Vite client for the GeoPhoto application.
 - Photo search and sidebar gallery
 - Leaflet map with clustered custom photo markers
 - Optional viewport-based map fetching
-- Upload modal with drag-and-drop, EXIF GPS extraction, manual coordinates, and mini-map pin selection
-- Photo detail modal with image preview, AI description, owner delete action, coordinate copy, and comments
+- Upload modal with drag-and-drop, EXIF GPS extraction, manual coordinates and mini-map pin selection
+- Photo detail modal with image preview, AI description, owner delete action, coordinate copy and comments
 
 ## Run Locally
 
