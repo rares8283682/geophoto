@@ -34,23 +34,32 @@ I would use a multimodal model such as Gemini or OpenAI vision models to generat
 
 ```mermaid
 flowchart TB
-  Browser["React SPA"]
-  API["Express REST API"]
-  DB[("PostgreSQL + PostGIS")]
-  Storage[("Object Storage + CDN")]
-  Queue["Background Job Queue"]
-  AI["Vision AI API"]
-  Email["Transactional Email Provider"]
+  Client["React client"]
+  API["Express API"]
+  DB[("PostGIS DB")]
+  Store[("Image storage")]
+  Jobs["Job queue"]
+  AI["Vision AI"]
+  Mail["Email"]
 
-  Browser --> API
-  Browser --> Storage
+  Client --> API
+  Client --> Store
   API --> DB
-  API --> Storage
-  API --> Queue
-  API --> Email
-  Queue --> AI
-  Queue --> DB
+  API --> Store
+  API --> Jobs
+  API --> Mail
+  Jobs --> AI
+  Jobs --> DB
 ```
+
+- Client: React SPA.
+- API: Express REST API.
+- DB: PostgreSQL + PostGIS in production.
+- Storage: object storage + CDN for original images and thumbnails.
+- Jobs: background queue for asynchronous AI work.
+- AI: vision model for photo descriptions.
+- Email: transactional provider for verification and password reset emails.
+
 - Browser calls the API with JWT-authenticated HTTPS requests.
 - Browser loads image URLs directly from object storage/CDN.
 - API stores users, photos, comments, and coordinates in PostgreSQL/PostGIS.
