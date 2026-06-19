@@ -1,6 +1,6 @@
 # GeoPhoto Backend
 
-Express API for authentication, photo upload, map photo queries, comments, and optional AI descriptions.
+Express API for authentication, photo upload, map photo queries, comments and optional AI descriptions.
 
 ## Responsibilities
 
@@ -61,4 +61,4 @@ If SMTP is not configured, Nodemailer uses Ethereal test email accounts and retu
 - `photos`: owner, filename, original name, coordinates, AI description
 - `comments`: photo, author, body, timestamp
 
-Indexes are created for user lookup, photo owner lookup, photo coordinates, and comment lookup by photo.
+Indexes are created for user lookup, photo owner lookup, photo coordinates and comment lookup by photo.
