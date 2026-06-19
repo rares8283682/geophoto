@@ -42,18 +42,23 @@ flowchart TB
   AI["Vision AI API"]
   Email["Transactional Email Provider"]
 
-  Browser -->|"JWT / REST"| API
-  Browser -->|"Image URLs"| Storage
-
-  API -->|"Metadata"| DB
-  API -->|"Originals + thumbnails"| Storage
-  API -->|"Queue AI job"| Queue
-  API -->|"Verification email"| Email
-
-  Queue -->|"Image request"| AI
-  Queue -->|"Save description"| DB
+  Browser --> API
+  Browser --> Storage
+  API --> DB
+  API --> Storage
+  API --> Queue
+  API --> Email
+  Queue --> AI
+  Queue --> DB
 ```
-
+- Browser calls the API with JWT-authenticated HTTPS requests.
+- Browser loads image URLs directly from object storage/CDN.
+- API stores users, photos, comments, and coordinates in PostgreSQL/PostGIS.
+- API uploads originals and thumbnails to object storage.
+- API queues AI description jobs.
+- Background worker sends images to the vision AI API and saves descriptions.
+- API sends verification and reset emails through the email provider.
+  
 ### Main API Endpoints
 
 - `POST /auth/send-signup-code`
