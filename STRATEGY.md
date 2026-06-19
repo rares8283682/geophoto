@@ -33,23 +33,25 @@ I would use a multimodal model such as Gemini or OpenAI vision models to generat
 ## 2. System Architecture
 
 ```mermaid
-flowchart TD
+flowchart TB
   Browser["React SPA"]
   API["Express REST API"]
-  DB[("PostgreSQL + PostGIS in production")]
+  DB[("PostgreSQL + PostGIS")]
   Storage[("Object Storage + CDN")]
   Queue["Background Job Queue"]
   AI["Vision AI API"]
   Email["Transactional Email Provider"]
 
-  Browser -->|"JWT / HTTPS / REST"| API
-  Browser -->|"direct image URLs"| Storage
-  API -->|"users, photos, comments, coordinates"| DB
-  API -->|"upload original + thumbnails"| Storage
-  API -->|"enqueue AI job"| Queue
-  Queue -->|"image description request"| AI
-  Queue -->|"save generated description"| DB
-  API -->|"verification/reset email"| Email
+  Browser -->|"JWT / REST"| API
+  Browser -->|"Image URLs"| Storage
+
+  API -->|"Metadata"| DB
+  API -->|"Originals + thumbnails"| Storage
+  API -->|"Queue AI job"| Queue
+  API -->|"Verification email"| Email
+
+  Queue -->|"Image request"| AI
+  Queue -->|"Save description"| DB
 ```
 
 ### Main API Endpoints
