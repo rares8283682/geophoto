@@ -633,7 +633,81 @@ WHERE geom && ST_MakeEnvelope(west, south, east, north, 4326);
   \end{itemize}
 \end{frame}
 
-% Slide 40: Conclusion & Open Q&A
+# Slide 40: GeoPhoto - Practical Engineering Challenges
+\begin{frame}{GeoPhoto: Practical Engineering Challenges}
+  \begin{itemize}
+    \item \textbf{GPS Metadata Reliability:} 
+      \begin{itemize}
+        \item Over $50\%$ of user photos had GPS metadata stripped (due to social media exports/privacy settings).
+        \item \textbf{Solution:} Designed an interactive map click coordinate listener to ensure seamless user fallback.
+      \end{itemize}
+    \item \textbf{Asynchronous UI State Lag:}
+      \begin{itemize}
+        \item Since AI generation runs in the background, updating the UI immediately after upload required state pooling or manual regeneration triggers.
+      \end{itemize}
+    \item \textbf{API Quota & Rate Limits:}
+      \begin{itemize}
+        \item Rapid uploads during testing triggered Gemini 429 rate limit errors.
+        \item \textbf{Solution:} Added exponential backoff retry algorithms to handle network congestion gracefully.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 41: World Cup Simulator - Constraints & Edge Cases
+\begin{frame}{World Cup Simulator: Constraints \& Edge Cases}
+  \begin{itemize}
+    \item \textbf{Computational Bottlenecks:}
+      \begin{itemize}
+        \item Evaluating complex third-place ranking comparisons for 10,000 runs inside standard loops caused massive lags.
+        \item \textbf{Solution:} Vectorized calculations using NumPy matrices.
+      \end{itemize}
+    \item \textbf{Predictive Modeling Drift:}
+      \begin{itemize}
+        \item Static Elo ratings struggle to capture sudden squad alterations, injuries, or tactical shifts.
+      \item Historical data skew makes predicting outliers or extreme dark horses difficult.
+      \end{itemize}
+    \item \textbf{Tie-breaker edge cases:}
+      \begin{itemize}
+        \item Complex tie-breaker sequences (fair play points, drawing of lots) are hard to model mathematically.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 42: What Didn't Work Perfectly & Key Learnings
+\begin{frame}{What Didn't Work Perfectly \& Key Learnings}
+  \begin{itemize}
+    \item \textbf{Local File Watcher Limits:}
+      \begin{itemize}
+        \item The frontend live watch system (`npm run dev`) failed on macOS due to OS watch handles reaching maximum capacity.
+        \item \textbf{Learning:} Realized the importance of identifying and documenting alternative commands (`npm start` / watcher adjustments) in developer guides.
+      \end{itemize}
+    \item \textbf{Testing Leaflet in JSDOM:}
+      \begin{itemize}
+        \item Leaflet map containers depend on actual browser layout dimensions (offsets/widths). Testing them in headless JSDOM environments was extremely difficult.
+        \item \textbf{Learning:} Had to write elaborate mocks for Leaflet APIs, teaching me that full E2E testing (Playwright) is far better suited for maps than unit tests.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 43: Future Research & Next Iterations
+\begin{frame}{Future Research \& Next Iterations}
+  \begin{itemize}
+    \item \textbf{Advanced Visualization:}
+      \begin{itemize}
+        \item Replace Leaflet DOM markers with canvas/WebGL rendering (MapLibre GL) to support over $100,000$ points dynamically.
+      \end{itemize}
+    \item \textbf{Refining Mathematical Models:}
+      \begin{itemize}
+        \item Migrate from static Poisson regression models to machine learning networks (LSTM, XGBoost) to model dynamic momentum shifts during play.
+      \end{itemize}
+    \item \textbf{Cloud Native Tasks:}
+      \begin{itemize}
+        \item Move the image processing and AI generation pipelines to serverless edge functions to completely isolate memory consumption from the Express server.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 44: Conclusion & Open Q&A
 \begin{frame}{Conclusion \& Open Q\&A}
   \begin{columns}
     \begin{column}{0.5\textwidth}
@@ -654,7 +728,7 @@ WHERE geom && ST_MakeEnvelope(west, south, east, north, 4326);
         \Huge \textbf{Thank You!} \\
         \vspace{1cm}
         \large \textbf{Questions \& Answers}
-      \end{center>
+      \end{center}
     \end{column}
   \end{columns}
 \end{frame}
