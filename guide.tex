@@ -5,13 +5,22 @@
 \usepackage{booktabs}
 \usepackage{color}
 \usepackage{amsmath}
+\usepackage{listings}
 
 \definecolor{primary}{RGB}{30, 41, 59}
 \definecolor{secondary}{RGB}{79, 70, 229}
 \definecolor{teal}{RGB}{13, 148, 136}
 
-\title{\textbf{Easy-to-Remember Interview Prep Guide: GeoPhoto}\\
-\large Simple Analogies, Conversational Explanations \& Cheat Sheets}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{secondary}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{teal},
+  breaklines=true
+}
+
+\title{\textbf{Master Study Guide: Full-Stack Geospatial Engineering}\\
+\large Deep-Dive Technical Implementation, Code Workflows \& Interview Strategy}
 \author{Prepared for: Rares Olteanu}
 \date{June 2026}
 
@@ -19,140 +28,327 @@
 
 \maketitle
 \newpage
-
-\section{Introduction: The ``One-Sentence'' Pitch}
-If Jules asks you: \textbf{``What did you do in this technical test?''}, say this simple sentence:
-\begin{quote}
-\textit{``I took a basic map application and upgraded its security, fixed the search filters, added background AI description retries, cleaned up the code, wrote solid frontend tests, and created a production blueprint for scaling it to thousands of photos using PostGIS.''}
-\end{quote}
-
----
-
-\section{Five Core Tech Concepts Explained with Simple Metaphors}
-Use these metaphors to explain the tech during the interview. It makes you sound very smart and makes the concepts impossible to forget.
-
-\subsection{1. JWT (JSON Web Token) $\to$ The Festival Wristband}
-\begin{itemize}
-    \item \textbf{The Old Way (Stateful):} Every time you want to do something, the server checks a giant list (session database) to see if you are logged in. This slows down when there are thousands of users.
-    \item \textbf{The JWT Way (Stateless):} When you log in, the server signs a secure ticket (the JWT) and gives it to you. You store it in your browser. Every time you ask for photos or add comments, you show this token.
-    \item \textbf{The Metaphor:} It is like a \textbf{Festival Wristband}. When you enter the gate, they check your ID once and give you a wristband. You don't show your ID every time you buy a drink; you just show the wristband. The bartender doesn't check a database; they just look at the wristband's stamp to see if it is real.
-\end{itemize}
-
-\subsection{2. CSRNG (Secure Random Numbers) $\to$ Rolling Real Dice vs. Computer Patterns}
-\begin{itemize}
-    \item \textbf{The Old Way (\texttt{Math.random()}):} The verification code was generated using a basic formula. Computers can't naturally be random; they follow patterns. If a hacker knows the formula, they can guess the next verification code.
-    \item \textbf{The CSRNG Way (\texttt{crypto.randomInt()}):} We use Node's secure random number generator. It uses physical measurements from your computer (like temperature or key press timing) to create a truly unpredictable code.
-    \item \textbf{The Metaphor:} \texttt{Math.random()} is like a magician pretending to pick a card, but he actually has a pre-determined order. \texttt{crypto} is like throwing a real pair of dice in the air—no one can predict the outcome.
-\end{itemize}
-
-\subsection{3. Asynchronous AI $\to$ The McDonald's Ordering Counter}
-\begin{itemize}
-    \item \textbf{The Problem:} Creating an AI description from a photo takes 5--10 seconds because we have to send it to Google Gemini and wait.
-    \item \textbf{The Solution:} We don't make the user wait. The backend saves the coordinates instantly, tells the user ``Done!'' (HTTP 201), and kicks off the AI process in the background. Once the description is ready, it updates the database.
-    \item \textbf{The Metaphor:} It's like \textbf{ordering food at McDonald's}. The cashier doesn't make you stand at the cash register for 10 minutes while they cook your fries. They give you a receipt with a number and tell you to wait. You go sit down, and they call your number when the food is ready.
-\end{itemize}
-
-\subsection{4. MSW (Mock Service Worker) $\to$ The Hollywood Stunt Double}
-\begin{itemize}
-    \item \textbf{The Problem:} We want to test our React components without running our real database or backend. Mocking Axios functions directly makes tests fragile.
-    \item \textbf{The Solution:} We intercept network requests. The frontend sends HTTP requests exactly like in production, but MSW intercepts them at the browser level and feeds them fake database data.
-    \item \textbf{The Metaphor:} It is like a \textbf{Stunt Double} in a movie. The main actor (your React code) thinks they are jumping off a real building (the backend), but the stunt double (MSW) catches them safely. If you change the camera (Axios $\to$ Fetch), the actor's jump still works because the stunt double is still catching them.
-\end{itemize}
-
-\subsection{5. PostGIS (Spatial Database) $\to$ Mailboxes organized by Neighborhood}
-\begin{itemize}
-    \item \textbf{The Problem:} Standard databases search for text or numbers. Searching for points on a 2D map using traditional methods means checking every single photo in the database to see if it is inside your view.
-    \item \textbf{The PostGIS Solution:} We use a special database extension (PostGIS) that groups coordinates into spatial grids (GIST indexes).
-    \item \textbf{The Metaphor:} Imagine a postman delivering letters. SQLite is like having one giant pile of letters in alphabetical order; to find a letter for a specific street, you have to read through the whole stack. PostGIS is like having \textbf{boxes sorted by neighborhood}. You go directly to the correct neighborhood box and ignore the rest.
-\end{itemize}
-
----
-
+\tableofcontents
 \newpage
-\section{Slide-by-Slide: Simple Talking Points}
-Use these extremely simple scripts when going through the slides.
 
-\subsection{Slides 1--5: Intro \& Workflow}
+\section{Introduction: The Goal of the Walkthrough}
+When speaking with Jules, your goal is to show that you didn't just write code that ``works''---you wrote code that is **secure, optimized, fully tested, and ready for production scaling**.
+
+This guide covers every single technical implementation detail in your codebase, explaining exactly \textbf{what} was done, \textbf{where} it is in the code, \textbf{how} it works under the hood, and \textbf{why} it is a best-practice engineering decision.
+
+---
+
+\section{Core Frontend Techniques \& Implementation}
+
+\subsection{1. Client-Side EXIF Metadata Extraction}
 \begin{itemize}
-    \item \textbf{Slide 1--3:} ``Hi, I'm Rares. Today I'm showing GeoPhoto. It's a decoupled app where you upload photos, extract GPS tags, and see them clustered on a map.''
-    \item \textbf{Slide 4--5:} ``I kept the frontend separate from the backend. The backend handles image processing and AI in the background, while the frontend handles map visuals.''
+    \item \textbf{What it is:} Automatically reading coordinate metadata embedded directly in image files (JPEG/TIFF) inside the browser before the upload occurs.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [UploadModal.jsx](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Upload/UploadModal.jsx).
+        \item Library: We import \texttt{exifr} to process the selected raw file object.
+        \item Workflow:
+\begin{lstlisting}[language=JavaScript]
+// Reads raw file, parses GPS headers, and returns decimals
+const gps = await exifr.gps(file);
+if (gps && gps.latitude && gps.longitude) {
+  setLatitude(gps.latitude.toString());
+  setLongitude(gps.longitude.toString());
+}
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item \textbf{UX:} Saves users from manually typing coordinates for photos taken on mobile devices or GPS-enabled inspection equipment (like HyLight's airships).
+        \item \textbf{Efficiency:} Ingestion occurs on the client's thread. The server does not waste CPU cycles parsing image byte arrays for metadata.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Slides 6--12: Ingestion & Leaflet Maps}
+\subsection{2. Leaflet Map Clustering \& Custom Markers}
 \begin{itemize}
-    \item \textbf{Slide 8--10:} ``When you drop a photo, we read its EXIF data instantly in the browser. If the photo has no GPS data (like many cropped photos), the user can click on a mini-map to manually set the location.''
-    \item \textbf{Slide 11--12:} ``To keep the map fast, I added marker clustering. If you zoom out, markers merge into groups. If you move the map, we only fetch photos that fit on your current screen.''
+    \item \textbf{What it is:} Grouping nearby map markers together into aggregated clusters on the map viewport, and rendering customized HTML markers using thumbnail images.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [MapView.jsx](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Map/MapView.jsx).
+        \item Libraries: We wrap Leaflet markers in \texttt{MarkerClusterGroup} (utilizing the Supercluster grouping algorithm).
+        \item Custom Icons: We construct Leaflet \texttt{L.divIcon} objects to render custom HTML elements containing the photo's S3/Local thumbnail URL inside a round CSS class with glowing selection borders:
+\begin{lstlisting}[language=JavaScript]
+function makePhotoIcon(photo, isSelected) {
+  const imgSrc = `${API_BASE_URL}/uploads/${photo.filename}`;
+  return L.divIcon({
+    html: `<div class="photo-marker-wrap ${isSelected ? 'selected' : ''}">
+             <img src="${imgSrc}" />
+           </div>`,
+    className: 'custom-photo-icon'
+  });
+}
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item \textbf{Performance:} Standard Leaflet markers render as full DOM elements. Rendering thousands of separate DOM nodes causes client-side rendering threads to choke. Clustering reduces active DOM count to a fraction.
+        \item \textbf{Aesthetics:} Gives a clean, visual representation of images directly on the map interface.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Slides 13--21: Express API & Background AI}
+\subsection{3. Viewport-Based Bounding Box Queries}
 \begin{itemize}
-    \item \textbf{Slide 14--16:} ``The API is simple: we have public routes for auth, and JWT-secured routes for uploads and comments. I added database indexes so user searches and comment loads are fast.''
-    \item \textbf{Slide 18--21:} ``I made the AI generation asynchronous. Uploading is instant, and Gemini creates descriptions in the background. If Gemini is down, the code retries using exponential backoff.''
-\end{itemize}
-
-\subsection{Slides 22--26: Security & Clean Code}
-\begin{itemize}
-    \item \textbf{Slide 22--24:} ``I audited the auth logic. I replaced Math.random with a secure crypto randomizer, added a 10-minute expiry to verification codes, and made them single-use.''
-    \item \textbf{Slide 25--26:} ``I cleaned up the codebase: removed dead state variables, removed informal messages from emails, and moved all configurations to a clean .env file.''
-\end{itemize}
-
-\subsection{Slides 27--31: Testing & Auditing}
-\begin{itemize}
-    \item \textbf{Slide 28--29:} ``I wrote unit tests with Vitest. Because JSDOM doesn't support maps, I mocked Leaflet. I also used MSW to intercept API calls so we test real network contracts.''
-    \item \textbf{Slide 30--31:} ``I resolved critical warnings with npm audit and set up a clean Dockerization blueprint for CI/CD workflows.''
-\end{itemize}
-
-\subsection{Slides 32--37: Production Scaling (For HyLight)}
-\begin{itemize}
-    \item \textbf{Slide 32--34:} ``To scale this to millions of photos, we would migrate to PostgreSQL and PostGIS to index coordinates as spatial geometries.''
-    \item \textbf{Slide 35--37:} ``We can run proximity queries to find photos near specific pipelines. We would also upload images directly to AWS S3 using presigned URLs and serve them via a CDN.''
-\end{itemize}
-
-\subsection{Slides 38--40: Retrospective & Roadmap}
-\begin{itemize}
-    \item \textbf{Slide 38--39:} ``Testing Leaflet maps in JSDOM was hard, which taught me that E2E tests are better for UI maps. For the future, I want to add YOLO computer vision to detect pipeline anomalies automatically on upload.''
+    \item \textbf{What it is:} Restricting map queries to load only the photo coordinates currently visible inside the user's active browser screen.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [MapView.jsx](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Map/MapView.jsx) \& [MapPage.jsx](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Map/MapPage.jsx).
+        \item Leaflet Event Listeners:
+\begin{lstlisting}[language=JavaScript]
+useMapEvents({
+  moveend() {
+    const bounds = map.getBounds();
+    const bbox = {
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast()
+    };
+    onBoundsChange(bbox); // Passes viewport coordinates back to MapPage state
+  }
+});
+\end{lstlisting}
+        \item The bounds are debounced, and a request is made to:
+        \lstinline[language=HTTP]{GET /photos?bbox=south,west,north,east}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item Prevents the application from downloading the entire global database of photos on load. If a user is viewing Paris, we only fetch photos in Paris.
+      \end{itemize}
 \end{itemize}
 
 ---
 
-\newpage
-\section{Anticipated Questions & Direct Answers}
-These are the questions Jules will likely ask. Memorize these direct answers.
+\section{Core Backend Techniques \& Implementation}
 
-\subsection{Q1: Why did you use SQLite and how would you scale it?}
+\subsection{1. Asynchronous AI Generation Pipeline with Retry Logic}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``I used SQLite for the test because it is simple to run locally without setup friction. However, SQLite locks the database file during writes, which bottlenecks concurrent uploads. For production, I would migrate to PostgreSQL and PostGIS. This allows us to handle heavy concurrent writes and run fast map-coordinate queries.''
+    \item \textbf{What it is:} Offloading Gemini AI description generation tasks from the main HTTP upload request-response cycle and managing third-party API errors using retry loops.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [routes/photos.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/routes/photos.js) \& [regenerate_descriptions.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/regenerate_descriptions.js).
+        \item Asynchronous Trigger:
+\begin{lstlisting}[language=JavaScript]
+// Express router saves metadata first
+const photoId = await db.insertPhoto(metadata);
+res.status(201).json({ id: photoId, message: 'Photo uploaded successfully!' });
+
+// Kicks off the AI processing in the background (Non-blocking)
+generateAIDescriptionBackground(photoId, filePath);
+\end{lstlisting}
+        \item Quota & Retries (with Exponential Backoff):
+\begin{lstlisting}[language=JavaScript]
+async function generateWithRetry(filePath) {
+  let attempt = 0;
+  while (attempt < 3) {
+    try {
+      return await callGeminiAI(filePath);
+    } catch (err) {
+      attempt++;
+      if (attempt >= 3) throw err;
+      const delay = 2000 * Math.pow(2, attempt); // 2s -> 4s -> 8s
+      await sleep(delay);
+    }
+  }
+}
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item \textbf{Non-blocking UI:} The user does not see a loading spinner for 8 seconds while waiting for the AI response. Uploads complete in milliseconds.
+        \item \textbf{Resilience:} Catching quota errors and retrying protects the system from transient rate limits (429) or third-party outages.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Q2: What did you change in the verification codes and why?}
+\subsection{2. Image Rotation & Normalization using Sharp}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``The original code used Math.random() which follows computer patterns and can be guessed. I changed it to Node's secure crypto library to make codes unpredictable. I also added a 10-minute expiry and deleted codes immediately after use to prevent replay attacks.''
+    \item \textbf{What it is:} Standardizing image orientation and compressing file sizes before saving to disk.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [routes/photos.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/routes/photos.js).
+        \item Library: \texttt{sharp}.
+        \item Code Workflow:
+\begin{lstlisting}[language=JavaScript]
+await sharp(req.file.buffer)
+  .rotate() // Reads EXIF metadata and rotates pixels to correct orientation
+  .jpeg({ quality: 80 }) // Compresses to JPG
+  .toFile(outputPath);
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item Fixes the bug where photos taken on iOS devices render sideways on the web due to browsers ignoring orientation tags.
+        \item Compressing photos to $80\%$ quality reduces files sizes by up to $60\%$ without losing visible detail.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Q3: Why is the Gemini AI description generation asynchronous?}
+---
+
+\section{Security, Authentication \& Code Cleanliness}
+
+\subsection{1. Cryptographically Secure OTP Generation}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``AI calls take several seconds. If we wait for the AI to respond before finishing the upload, the user has to wait on a loading screen. Making it asynchronous means the user gets an instant 'Success' response, and the description loads in the background.''
+    \item \textbf{What it is:} Replacing standard pseudo-random functions with secure, unpredictable number generators.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [routes/auth.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/routes/auth.js).
+        \item Module: Node's native \texttt{crypto}.
+        \item Code Upgrade:
+\begin{lstlisting}[language=JavaScript]
+// OLD (Vulnerable): Math.floor(10000000 + Math.random() * 90000000)
+// NEW (Secure):
+const code = crypto.randomInt(10000000, 100000000).toString();
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item \texttt{Math.random()} is not secure. Its values are generated by a math formula (LGC) that can be predicted if an attacker analyzes a few past outputs. \texttt{crypto.randomInt()} uses hardware entropy sources, making codes unpredictable.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Q4: What was the hardest part of the tests?}
+\subsection{2. Token Lifecycle Management: Expirations (TTL) \& Single-Use Cleanup}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``Testing Leaflet maps in a console environment. Leaflet needs a real browser screen size to render, which JSDOM does not have. I had to mock Leaflet event listeners to pass the tests. This taught me that map components are better tested using Playwright E2E tools than simple unit tests.''
+    \item \textbf{What it is:} Setting strict lifetimes for validation tokens and ensuring they are instantly deleted after use.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [routes/auth.js](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/backend/routes/auth.js).
+        \item Code Workflow:
+\begin{lstlisting}[language=JavaScript]
+// Store code with 10-minute expiry
+signupCodes.set(email.toLowerCase(), {
+  code,
+  expiresAt: Date.now() + 10 * 60 * 1000 // 10-minute TTL
+});
+
+// Validation check
+const record = signupCodes.get(email.toLowerCase());
+if (!record || record.expiresAt < Date.now()) {
+  signupCodes.delete(email.toLowerCase()); // Clear expired code
+  return res.status(400).json({ error: 'Expired code' });
+}
+
+// Clear immediately upon successful login/verification
+signupCodes.delete(email.toLowerCase());
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:}
+      \begin{itemize}
+        \item \textbf{Prevents Brute-Force:} Expiring tokens prevents hackers from trying every combination over hours.
+        \item \textbf{Prevents Replay Attacks:} Once a code is validated, it is deleted. It cannot be used a second time.
+      \end{itemize}
 \end{itemize}
 
-\subsection{Q5: If an airship drone uploads 50,000 photos, how do we prevent a backend crash?}
+\subsection{3. Refactoring Unused Code and Hardcoded Secrets}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``We should never upload files directly through our Node.js API server. Instead, we use S3 Presigned URLs. The client uploads the images directly to S3. Then, S3 triggers background workers (using a queue like BullMQ) to resize the images, extract GPS data, and run AI detection in the background.''
+    \item \textbf{What it is:} Cleaning up dead code, removing console noise, and isolating configuration details from the code.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Removed local verification states and dummy math generators in [AuthPage.jsx](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Auth/AuthPage.jsx).
+        \item Replaced hardcoded localhost routes in frontend files with configurable `API_BASE_URL` reading from `import.meta.env.VITE_API_BASE_URL`.
+        \item Removed raw debug print statements and informal strings from emails.
+      \end{itemize}
+    \item \textbf{Why it is a best practice:} Shows professionalism. Leaving debug strings or dead states in code looks sloppy to reviewers.
 \end{itemize}
 
-\subsection{Q6: What is MSW and why did you use it?}
+---
+
+\section{Automated Testing Strategy}
+
+\subsection{1. Headless JSDOM Mocks (LocalStorage \& Leaflet)}
 \begin{itemize}
-    \item \textbf{Your Answer:} 
-    ``MSW intercepts network requests at the browser level. Instead of mocking Axios functions directly (which breaks if we switch to Fetch), we test our components using real HTTP requests intercepted by MSW. This validates the actual API contracts.''
+    \item \textbf{What it is:} Simulating browser APIs inside a Node-based testing environment.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [src/tests/setup.ts](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/tests/setup.ts).
+        \item Context: JSDOM does not implement coordinate layout methods. We mocked them to ensure tests pass:
+\begin{lstlisting}[language=JavaScript]
+// Mock localStorage
+global.localStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  clear: vi.fn()
+};
+// Mock Leaflet Container rendering
+vi.mock('react-leaflet', () => ({
+  MapContainer: ({ children }) => <div>{children}</div>,
+  TileLayer: () => null,
+  Marker: ({ children }) => <div>{children}</div>
+}));
+\end{lstlisting}
+      \end{itemize}
+\end{itemize}
+
+\subsection{2. Mock Service Worker (MSW) Network Mocking}
+\begin{itemize}
+    \item \textbf{What it is:} Intercepting HTTP requests at the network level rather than mocking Axios client instances.
+    \item \textbf{Implementation Details:}
+      \begin{itemize}
+        \item Located in: [src/tests/mocks/handlers.ts](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/tests/mocks/handlers.ts).
+        \item Code Workflow:
+\begin{lstlisting}[language=JavaScript]
+export const handlers = [
+  http.get('http://localhost:3001/photos', () => {
+    return HttpResponse.json([
+      { id: 1, lat: 48.8, lng: 2.3, filename: 'mock.jpg', original_name: 'Mock Photo', ai_description: 'Eiffel Tower' }
+    ]);
+  })
+];
+\end{lstlisting}
+      \end{itemize}
+    \item \textbf{Why it is a best practice:} Decouples tests from implementation details. If you change Axios to Fetch, your tests continue to pass because MSW intercepts network traffic.
+\end{itemize}
+
+---
+
+\section{Production Scaling Blueprint (For HyLight)}
+
+\subsection{1. PostgreSQL & PostGIS Spatial Extension}
+\begin{itemize}
+    \item \textbf{Why SQLite is limited:} SQLite is a single file. It does not support concurrent write operations and lacks native geospatial optimization tools.
+    \item \textbf{PostGIS Implementation:}
+      \begin{itemize}
+        \item We store coordinates inside a \texttt{GEOGRAPHY(Point, 4326)} column called `geom` (using standard GPS SRID 4326).
+        \item Index coordinates using GIST (Generalized Search Tree):
+        \lstinline[language=SQL]{CREATE INDEX idx_geom ON photos USING GIST(geom);}
+      \end{itemize}
+\end{itemize}
+
+\subsection{2. Viewport & Proximity Queries}
+\begin{itemize}
+    \item \textbf{Viewport queries:} Filter coordinates using spatial bounding envelopes:
+\begin{lstlisting}[language=SQL]
+SELECT id, filename FROM photos 
+WHERE geom && ST_MakeEnvelope(west, south, east, north, 4326);
+\end{lstlisting}
+    \item \textbf{Proximity to pipeline corridors:} Find all photos captured within 50 meters of a pipeline segment:
+\begin{lstlisting}[language=SQL]
+SELECT p.id, p.filename FROM photos p, pipeline_routes l
+WHERE l.id = :lineId AND ST_DWithin(p.geom, l.geom, 50.0);
+\end{lstlisting}
+\end{itemize}
+
+\subsection{3. S3 Presigned Uploads & CDN}
+\begin{itemize}
+    \item \textbf{S3 Presigned URLs:}
+      \begin{itemize}
+        \item Frontend requests an upload url: \texttt{GET /get-presigned-url}.
+        \item API generates a secure URL using AWS SDK.
+        \item Client uploads directly to S3 bucket. Node server resources are untouched.
+      \end{itemize}
+    \item \textbf{CDN Caching:} Serving images through a CDN (Cloudflare/CloudFront) caches images at regional edges, reducing download times.
+\end{itemize}
+
+---
+
+\section{Retrospective, Challenges \& Key Learnings}
+\begin{itemize}
+    \item \textbf{Watcher Limits:} Local file reload systems (`npm run dev`) crashed on macOS because the system watch handles reached maximum capacity.
+    \item \textbf{Testing Maps in Headless DOMs:} Leaflet maps depend on active browser screen sizes. Simulating this in Node's JSDOM console required writing deep mocks for Leaflet container sizes, teaching me that **Playwright E2E tests** are far better suited for maps than unit tests.
+    \item \textbf{Computer Vision Roadmap:} For the future, I want to add YOLO/Segment Anything object detection models into the upload flow to automatically flag anomalies (e.g. rust or cracks on assets) based on coordinate mapping.
 \end{itemize}
 
 \end{document}
