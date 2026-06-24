@@ -19,8 +19,8 @@
   breaklines=true
 }
 
-\title{\textbf{Slide-by-Slide Technical Explanation Guide}\\
-\large Detailed Breakdown of presentation.tex for the HyLight Interview}
+\title{\textbf{Pipeline-Based Speaker Guide: GeoPhoto}\\
+\large Unified Slide Walkthrough (Slides 1-39) \& Explanations for HyLight}
 \author{Prepared for: Rares Olteanu}
 \date{June 2026}
 
@@ -31,296 +31,287 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
-This guide goes through the 40 slides inside \texttt{presentation.tex} in order. For each slide, it explains:
-\begin{enumerate}
-    \item \textbf{What is on the slide:} The text, diagrams, or code shown to the audience.
-    \item \textbf{The technical explanation:} What the technology does under the hood so you understand it completely.
-    \item \textbf{Speaker Script:} A professional script of what you should say out loud during the presentation.
-\end{enumerate}
+\section{Introduction: The Pipeline Narrative}
+To present like a professional engineer, you must tell a **story**. 
+Instead of talking about code in isolation, you will walk Jules through the \textbf{Lifecycle of an Aerial Image} captured by HyLight's airship, showing how it flows from the sensor, through your frontend and backend, gets processed by AI, goes through test suites, and scales to the cloud.
+
+This guide gives you the exact script and explanation for every slide (1 to 39) in this pipeline.
 
 ---
 
-\section{Slide-by-Slide Breakdown}
+\section{Pipeline Walkthrough & Scripts}
 
-\subsection{Slide 1: Title Slide}
+\subsection{Slide 1: Title Slide (The Hook)}
 \begin{itemize}
-    \item \textbf{On the slide:} Title (Full-Stack Geospatial Engineering \& Data Pipelines), Subtitle, Author Name (Rares Olteanu), Date.
+    \item \textbf{Focus:} Introduce yourself and your pipeline topic.
     \item \textbf{Speaker Script:} 
-    \textit{``Hello everyone, thank you for joining. Today I want to walk you through the implementation of GeoPhoto, a full-stack geospatial platform I built for geotagging, mapping, and discussing imagery. I will also explain how this architecture maps to high-throughput data pipelines for industrial aerial inspections.''}
+    \textit{``Hi everyone, I'm Rares Olteanu. Today, I'm presenting the Full-Stack Media Ingestion Pipeline. We will walk through the lifecycle of a geospatial image captured by an inspection sensor—explaining how it gets processed, secured, and validated in our codebase, and how it scales to production levels.''}
 \end{itemize}
 
-\subsection{Slide 2: Agenda}
+\subsection{Slide 2: The Pipeline Flow (The Agenda)}
 \begin{itemize}
-    \item \textbf{On the slide:} Outline of the 5 sections: Ingestion, Backend \& AI, Security \& Quality, Testing, and Production Scaling.
+    \item \textbf{Focus:} Set the expectations.
     \item \textbf{Speaker Script:} 
-    \textit{``Here is our agenda. We will start on the client-side with telemetry ingestion, move to backend Express APIs and asynchronous AI jobs, audit the security updates I wrote, review my testing workflows, and close with a blueprint for scaling coordinates and media files to production-level grids.''}
+    \textit{``We will trace the image through 6 distinct pipeline stages: client-side sensor ingestion, backend gateway validation, background AI enrichment, security guardrails, automated test suites, and finally, database scaling. This maps directly to industrial drone pipelines.''}
 \end{itemize}
 
-\subsection{Slide 3: Candidate Profile \& Philosophy}
+\subsection{Slide 3: Engineering Philosophy}
 \begin{itemize}
-    \item \textbf{On the slide:} Core focus (Full-Stack, APIs, GIS), Software Quality advocacy (clean code, no dead paths), Testing standards (MSW, unit tests), and System vision.
+    \item \textbf{Focus:} Establish your standards.
     \item \textbf{Speaker Script:} 
-    \textit{``Before we look at the code, a quick note on my engineering philosophy. I believe in writing modular, decoupled code with strict linting and dead code cleanup. I also believe in writing robust test suites using network interception tools rather than fragile mocks, and always designing local code with a clear path to production scale.''}
+    \textit{``My core engineering principles are: keeping pipelines decoupled, auditing dependencies, writing network-intercepted tests using MSW, and designing code that is ready for S3 and spatial indexes.''}
 \end{itemize}
 
-\subsection{Slide 4: Mapping Aerial Inspection Media}
+\subsection{Slide 4: STAGE 1: Sensor Data Ingestion (The Problem)}
 \begin{itemize}
-    \item \textbf{On the slide:} The challenge of mapping thousands of aerial photos along infrastructure segments (pipelines, rail, grid). Text workflow diagram.
+    \item \textbf{Focus:} How do we handle new image files?
     \item \textbf{Speaker Script:} 
-    \textit{``The visual mapping of inspections is a core challenge. When drone or airship sensors capture grids, they generate thousands of high-density photos. To make this data useful, we need to extract GPS markers instantly, group them on visual maps, enrich them with AI description tags, and keep uploads completely non-blocking. This is the goal of GeoPhoto.''}
+    \textit{``Stage 1 begins when the airship returns from a flight. The raw image contains location and camera metadata. Our goal in Stage 1 is to read this telemetry locally on the client, render it on an interactive map, and handle fallbacks if the metadata is missing.''}
 \end{itemize}
 
-\subsection{Slide 5: Decoupled Product Workflow}
+\subsection{Slide 5: Stage 1: Ingestion Stack}
 \begin{itemize}
-    \item \textbf{On the slide:} Breakdown of separation: React SPA, Express API, Asynchronous AI Workers, and Decoupled Image Assets.
+    \item \textbf{Focus:} Frontend tech choices.
     \item \textbf{Speaker Script:} 
-    \textit{``To handle this workflow, I designed a decoupled architecture. The frontend is a static React application that handles client-side metadata extraction and mapping. The backend is an Express REST API that handles auth, listings, and image compression, while heavy AI descriptions are run asynchronously so they never block user actions.''}
+    \textit{``The ingestion stack uses React and Vite. We use Leaflet for mapping, react-leaflet-cluster for UI optimization, exifr for client-side EXIF data parsing, and Axios to send payloads downstream.''}
 \end{itemize}
 
-\subsection{Slide 6: Frontend Tech Stack}
+\subsection{Slide 6: Stage 1: Component Layout}
 \begin{itemize}
-    \item \textbf{On the slide:} Table of frontend technologies (Vite, Leaflet, React Leaflet Cluster, exifr, Axios, Vitest).
+    \item \textbf{Focus:} UI structure.
     \item \textbf{Speaker Script:} 
-    \textit{``Here is my frontend tech stack. I used Vite for fast local building and hot module reloading. For mapping, I chose Leaflet and React Leaflet Cluster. We use exifr to parse EXIF metadata directly inside the browser, and Axios to coordinate API calls.''}
+    \textit{``The UI is split into five modules. MapPage manages the global state. MapView renders the Leaflet container, while UploadModal acts as the file gate and PhotoModal allows details inspection.''}
 \end{itemize}
 
-\subsection{Slide 7: Frontend Component Architecture}
+\subsection{Slide 7: Stage 1: Client EXIF Ingestion}
 \begin{itemize}
-    \item \textbf{On the slide:} Key component roles: MapPage (state), MapView (Leaflet events), UploadModal (metadata read), PhotoModal (previews/comments), AuthPage (token management).
+    \item \textbf{Focus:} exifr code implementation.
     \item \textbf{Speaker Script:} 
-    \textit{``My frontend is structured into modular components. MapPage manages the global state. MapView renders map pins and captures screen move events. UploadModal parses image GPS tags. PhotoModal shows image details, comments, and AI outputs, while AuthPage handles JWT storage.''}
+    \textit{``When the user drops an image, we extract GPS headers using exifr locally in the browser before the upload begins. This is highly efficient because it removes image parsing overhead from the backend API.''}
 \end{itemize}
 
-\subsection{Slide 8: Ingestion: EXIF Coordinate Parsing}
+\subsection{Slide 8: Stage 1: Advanced Camera Telemetry}
 \begin{itemize}
-    \item \textbf{On the slide:} Explanation of EXIF headers. Code block showing \texttt{exifr.gps(file)} parsing coordinates and calling state hooks.
+    \item \textbf{Focus:} Telemetry data (altitude, yaw/pitch/roll).
     \item \textbf{Speaker Script:} 
-    \textit{``For photo ingestion, I implemented client-side EXIF parsing. When a user selects an image, the frontend reads the file bytes locally using exifr. It extracts GPS coordinates and autofills the form before the upload begins. This removes parsing work from the backend server.''}
+    \textit{``For advanced inspections, we extract coordinate altitude and camera angles like yaw, pitch, and roll from XMP blocks. This allows us to calculate and project the exact camera view cone on the map.''}
 \end{itemize}
 
-\subsection{Slide 9: Advanced EXIF: Yaw, Pitch, Roll \& Altitude}
+\subsection{Slide 9: Stage 1: Manual Coordinate Overrides}
 \begin{itemize}
-    \item \textbf{On the slide:} The importance of sensor metadata: altitude, gimbal angles (yaw/pitch/roll) stored in XMP schemas, and their use in calculating photo footprints.
+    \item \textbf{Focus:} Fallback map click events.
     \item \textbf{Speaker Script:} 
-    \textit{``In professional inspections, knowing only the sensor's coordinates isn't enough. We need advanced EXIF telemetry, including sensor altitude and camera gimbal angles—specifically yaw, pitch, and roll. Extracting these allows us to map the exact geographical view and footprint of the photo, rather than rendering a simple coordinate pin.''}
+    \textit{``If EXIF metadata is stripped, we display coordinate inputs and let the user click on an interactive mini-map. This captures coordinates instantly and ensures no photo is lost.''}
 \end{itemize}
 
-\subsection{Slide 10: Smart User Fallbacks: Interactive Mini-Map}
+\subsection{Slide 10: Stage 1: Marker Clustering}
 \begin{itemize}
-    \item \textbf{On the slide:} The problem of missing EXIF data. The fallback UI: manual coordinate inputs and interactive Leaflet map clicks updating input state immediately.
+    \item \textbf{Focus:} Map performance.
     \item \textbf{Speaker Script:} 
-    \textit{``Since many images have GPS tags stripped due to export settings or privacy rules, I designed an interactive mini-map fallback inside the upload modal. If EXIF data is empty, the user can click on the map, which captures the click event and updates the coordinates instantly.''}
+    \textit{``Rendering thousands of individual DOM markers crashes the browser. We group nearby coordinates using react-leaflet-cluster. Zooming in expands clusters dynamically, keeping map pan rates at 60 FPS.''}
 \end{itemize}
 
-\subsection{Slide 11: Map Rendering: Leaflet Marker Clustering}
+\subsection{Slide 11: Stage 1: Visible Screen Bounding Boxes}
 \begin{itemize}
-    \item \textbf{On the slide:} The lag bottleneck of rendering raw DOM markers. The cluster strategy using Supercluster grouping.
+    \item \textbf{Focus:} Viewport filtering (`moveend` listener).
     \item \textbf{Speaker Script:} 
-    \textit{``Rendering hundreds of individual DOM markers in the browser is slow. I resolved this by wrapping our markers in react-leaflet-cluster. It groups nearby points into single nodes with a count badge. As the user zooms in, it expands them dynamically, keeping map panning at 60 frames per second.''}
+    \textit{``To limit network payload sizes, the map captures Leaflet's moveend bounds. We query only coordinates inside the active screen window using debounced bounding box queries.''}
 \end{itemize}
 
-\subsection{Slide 12: Client-Side Bounding Box Event Handlers}
+\subsection{Slide 12: STAGE 2: Backend API \& Ingestion Gateway}
 \begin{itemize}
-    \item \textbf{On the slide:} Bounding box formula: Southwest/Northeast bounds. Leaflet `moveend` listener updating bounds state.
+    \item \textbf{Focus:} Image transition from client to backend.
     \item \textbf{Speaker Script:} 
-    \textit{``To prevent downloading the entire database on load, I set up viewport queries. We listen for Leaflet's moveend events, capture the Southwest and Northeast map corners, and request only the visible photos from the API. We also debounce these events to avoid spamming the backend during rapid panning.''}
+    \textit{``Now, the image crosses the network to Stage 2: The Gateway. Here, our Node/Express backend verifies the user session, parses the file using multer, normalizes the buffer, and commits metadata.''}
 \end{itemize}
 
-\subsection{Slide 13: Backend Tech Stack}
+\subsection{Slide 13: Stage 2: Endpoint Routing Design}
 \begin{itemize}
-    \item \textbf{On the slide:} Table of backend technologies (Node/Express, SQLite/LibSQL, Sharp, jsonwebtoken/bcrypt, Nodemailer, Gemini SDK).
+    \item \textbf{Focus:} REST endpoints structure and JWT guards.
     \item \textbf{Speaker Script:} 
-    \textit{``Here is my backend stack. I chose Node.js with Express for the API server. We use SQLite/LibSQL for local relational storage, Sharp for image resizing and rotation, and jsonwebtoken for session authentication.''}
+    \textit{``Our REST routing is decoupled. Public routes manage sign-ins, while JWT auth middleware protects write actions like uploading, comment postings, and deletions.''}
 \end{itemize}
 
-\subsection{Slide 14: REST API Endpoint Design}
+\subsection{Slide 14: Stage 2: Relational Schema}
 \begin{itemize}
-    \item \textbf{On the slide:} List of public routes (/auth/*) and JWT-protected routes (/photos, /comments).
+    \item \textbf{Focus:} Schema design (Users, Photos, Comments).
     \item \textbf{Speaker Script:} 
-    \textit{``The REST API is structured cleanly. Authentication endpoints are public. All write and retrieval routes—like uploading photos, deleting images, regenerating descriptions, or posting comments—require our custom JWT verification middleware in the header.''}
+    \textit{``I implemented a relational SQLite database schema. Deleting a photo triggers cascade rules to automatically clean up all child comment threads, maintaining referential integrity.''}
 \end{itemize}
 
-\subsection{Slide 15: Relational Data Model}
+\subsection{Slide 15: Stage 2: Fast Lookup Indexing}
 \begin{itemize}
-    \item \textbf{On the slide:} Relational schema details for \texttt{users}, \texttt{photos}, and \texttt{comments} tables, including foreign keys and cascade rules.
+    \item \textbf{Focus:} Database performance.
     \item \textbf{Speaker Script:} 
-    \textit{``I designed a relational database schema. The users table stores logins. The photos table links to users via a foreign key, and comments link to both photos and users. I configured cascade deletion rules, so deleting a photo automatically cleans up its associated comment threads.''}
+    \textit{``To support thousands of images, I created database indexes. I added a unique index on user emails, and spatial indexes on photo coordinates to speed up map queries.''}
 \end{itemize}
 
-\subsection{Slide 16: Relational Indexing Strategy}
+\subsection{Slide 16: Stage 2: Image Normalization}
 \begin{itemize}
-    \item \textbf{On the slide:} Index statements: `idx_users_email` (unique), `idx_photos_coords`, `idx_photos_user`, `idx_comments_photo`.
+    \item \textbf{Focus:} Sharp image orientation and compression.
     \item \textbf{Speaker Script:} 
-    \textit{``To ensure fast lookups, I implemented indexing. I added a unique index on user emails for fast sign-ins, a composite index on photo coordinates to speed up map queries, and an index on photo comments sorted by creation date for instant threads.''}
+    \textit{``Mobile uploads are often rotated. During upload, the backend routes the file to Sharp, calls rotate to fix orientation based on EXIF tags, and compresses the output to JPEG to save space.''}
 \end{itemize}
 
-\subsection{Slide 17: Media Pipeline: Normalization \& Compression}
+\subsection{Slide 17: STAGE 3: Non-Blocking AI Processing}
 \begin{itemize}
-    \item \textbf{On the slide:} The EXIF orientation bug explained. Sharp code pipeline: `sharp().rotate().jpeg({ quality: 80 }).toFile()`.
+    \item \textbf{Focus:} Background jobs and Gemini Vision.
     \item \textbf{Speaker Script:} 
-    \textit{``Mobile photos often contain orientation flags that cause browsers to render them rotated. During upload, my backend interceptor routes the image buffer to Sharp, calls the rotate method to permanently fix the pixels, and compresses the image to JPEG at 80 percent quality to save storage space.''}
+    \textit{``In Stage 3, the backend processes heavy tasks asynchronously. We save the database record, respond with a HTTP 201 immediately, and spawn a background AI worker to generate image descriptions.''}
 \end{itemize}
 
-\subsection{Slide 18: Asynchronous Processing Pipeline}
+\subsection{Slide 18: Stage 3: Vision AI Code Integration}
 \begin{itemize}
-    \item \textbf{On the slide:} Diagram showing how the upload response completes before background AI tasks are launched.
+    \item \textbf{Focus:} Gemini API call details.
     \item \textbf{Speaker Script:} 
-    \textit{``Calling AI APIs takes time. I designed the server to save the coordinates and immediately return a HTTP 201 response. Once the user's connection is closed, the backend runs the AI generator in the background. This ensures that uploading photos remains near-instant.''}
+    \textit{``Here is the code. We read the saved file buffer as a base64 string, invoke Gemini 1.5 Flash, request a descriptive caption, and write the output back to the database.''}
 \end{itemize}
 
-\subsection{Slide 19: Asynchronous AI: Vision Model Integration}
+\subsection{Slide 19: Stage 3: AI Quota \& Retry Logic}
 \begin{itemize}
-    \item \textbf{On the slide:} Node.js code block utilizing the Google Gemini API SDK (`genAI.getGenerativeModel`) to send base64 image strings.
+    \item \textbf{Focus:} Exponential backoff logic.
     \item \textbf{Speaker Script:} 
-    \textit{``Here is the AI integration. We import the Google Generative AI SDK, select the gemini-1.5-flash model, read the image file as a base64 string, and request a short, one-sentence description of the image content. The description is then saved to the database.''}
+    \textit{``If the AI API fails due to rate limits or drops, our code catches the error and executes an exponential backoff loop, retrying up to 3 times ($2\text{s} \to 4\text{s} \to 8\text{s}$) to ensure resilience.''}
 \end{itemize}
 
-\subsection{Slide 20: AI Resilience: Quota Handling \& Exponential Backoff}
+\subsection{Slide 20: Stage 3: Manual AI Regeneration}
 \begin{itemize}
-    \item \textbf{On the slide:} Description of the backoff retry algorithm (maximum 3 attempts, doubling sleep delays: 2s $\to$ 4s $\to$ 8s).
+    \item \textbf{Focus:} On-demand updates.
     \item \textbf{Speaker Script:} 
-    \textit{``Third-party APIs face rate limits and network drops. If the Gemini API call fails, my code executes an exponential backoff loop. It retries up to 3 times, doubling the delay on each failure. If all attempts fail, it logs the error and leaves the description empty, preventing backend crashes.''}
+    \textit{``If the AI key was missing initially, users can click 'Regenerate' in the details view. This calls the backend update route and refreshes the UI state dynamically.''}
 \end{itemize}
 
-\subsection{Slide 21: Dynamic Regeneration: On-Demand AI Updates}
+\subsection{Slide 21: STAGE 4: Security \& Quality Guardrails}
 \begin{itemize}
-    \item \textbf{On the slide:} Manual AI regeneration flow via `POST /photos/:id/regenerate-description`.
+    \item \textbf{Focus:} How we secured the pipeline.
     \item \textbf{Speaker Script:} 
-    \textit{``If the AI fails during upload or is disabled initially, users can click 'Regenerate' in the detail modal. This sends a request to our regenerate endpoint, runs the AI worker, updates the database, and returns the new text to update the UI dynamically.''}
+    \textit{``In Stage 4, I audited and secured the pipeline. I replaced vulnerable random generators, wrote strict token lifetimes, and refactored dead code.''}
 \end{itemize}
 
-\subsection{Slide 22: Stateless Authentication: JWT Verification}
+\subsection{Slide 22: Stage 4: Secure OTP Generation}
 \begin{itemize}
-    \item \textbf{On the slide:} Stateless authentication diagram. The process of verification using JWT signatures.
+    \item \textbf{Focus:} crypto.randomInt vs Math.random.
     \item \textbf{Speaker Script:} 
-    \textit{``We use stateless JWT authentication. The server doesn't store session IDs. It signs a token on login using a secure key. The client attaches this token to HTTP headers, and our middleware decodes it to verify the user's session instantly.''}
+    \textit{``The original code used Math.random to generate verification codes. Since this is predictable, I refactored the backend to use Node's native crypto module to generate secure, high-entropy tokens.''}
 \end{itemize}
 
-\subsection{Slide 23: Cryptographically Secure OTP Generation}
+\subsection{Slide 23: Stage 4: Expiration \& Revocation}
 \begin{itemize}
-    \item \textbf{On the slide:} Security vulnerability of Math.random. Secure code generation using `crypto.randomInt()`.
+    \item \textbf{Focus:} TTL and single-use map deletes.
     \item \textbf{Speaker Script:} 
-    \textit{``The original code used Math.random to create 8-digit verification codes. Since Math.random follows predictable patterns, I refactored the auth router to use Node's native crypto library. This generates cryptographically secure, unpredictable numbers using hardware entropy.''}
+    \textit{``Verification codes are stored in memory with a strict 10-minute expiry time-to-live. Codes are deleted immediately upon successful validation to block brute-force and replay attacks.''}
 \end{itemize}
 
-\subsection{Slide 24: Code Lifecycle Security: TTL \& Single-Use Cleanup}
+\subsection{Slide 24: Stage 4: Clean Code Refactoring}
 \begin{itemize}
-    \item \textbf{On the slide:} Code lifecycle settings: 10-minute expiry time-to-live (TTL) and instant map deletion upon validation.
+    \item \textbf{Focus:} Code cleanliness and file structures.
     \item \textbf{Speaker Script:} 
-    \textit{``To protect the authentication flow, I implemented token lifecycle rules. Verification codes are saved in memory with a strict 10-minute TTL. Expired codes are rejected, and valid codes are deleted immediately on use to block brute-force and replay attacks.''}
+    \textit{``I cleaned up the codebase: removed dead state variables, removed informal messages from emails, and separated routes, middlewares, and helpers into clean folder structures.''}
 \end{itemize}
 
-\subsection{Slide 25: Code Quality Refactoring: Clean Architecture}
+\subsection{Slide 25: Stage 4: Environment Portability}
 \begin{itemize}
-    \item \textbf{On the slide:} Refactoring changes: separating routing, removing unused frontend states, and cleaning mailer debug texts.
+    \item \textbf{Focus:} env variables.
     \item \textbf{Speaker Script:} 
-    \textit{``I audited and refactored the codebase for quality. I separated routes and middleware, removed dead variables like verificationCode from the frontend state, and cleaned out informal debug messages to ensure a professional code standard.''}
+    \textit{``I removed all hardcoded urls and keys. All routes and settings are managed through portable environment variables, allowing us to deploy the pipeline without changing code.''}
 \end{itemize}
 
-\subsection{Slide 26: Environment Portability: Configurable APIs}
+\subsection{Slide 26: STAGE 5: Pipeline Validation \& Testing}
 \begin{itemize}
-    \item \textbf{On the slide:} Configurable environment variables: VITE_API_BASE_URL, FRONTEND_URL, SMTP_*, and GEMINI_API_KEY.
+    \item \textbf{Focus:} How we prevent regressions in the pipeline.
     \item \textbf{Speaker Script:} 
-    \textit{``I removed all hardcoded urls and keys. By using configuration files, we can route the frontend client and change CORS origins without code modifications. We also automatically fall back to sandboxed email testing if SMTP variables are not set.''}
+    \textit{``In Stage 5, we validate our pipeline using automated tests. I set up unit tests, network mocking, package overrides, and CI/CD pipelines.''}
 \end{itemize}
 
-\subsection{Slide 27: Testing Philosophy: Unit vs. E2E Tests}
+\subsection{Slide 27: Stage 5: DOM \& Leaflet Mocking}
 \begin{itemize}
-    \item \textbf{On the slide:} Comparing test types: Unit tests (fast, logic-focused) and End-to-End tests (UI flows and maps).
+    \item \textbf{Focus:} setup.ts mocks.
     \item \textbf{Speaker Script:} 
-    \textit{``My testing strategy is divided. I write fast unit tests for component forms and state logic. However, since map elements depend heavily on browser screen measurements and rendering offsets, they are far better verified using E2E browsers like Playwright.''}
+    \textit{``JSDOM lacks browser APIs like localStorage and Leaflet map heights. In setup.ts, I mocked these layout APIs to ensure our tests compile and run reliably in console environments.''}
 \end{itemize}
 
-\subsection{Slide 28: Vitest Configuration \& Setup Mocks}
+\subsection{Slide 28: Stage 5: MSW Network Mocking}
 \begin{itemize}
-    \item \textbf{On the slide:} Global JSDOM mocks for `window.localStorage`, `URL.createObjectURL`, and Leaflet map containers inside `setup.ts`.
+    \item \textbf{Focus:} MSW handlers.
     \item \textbf{Speaker Script:} 
-    \textit{``Since Vitest runs tests in a headless JSDOM environment, it lacks browser features like local storage and map dimensions. In my setup file, I mocked these global APIs and Leaflet's layout handlers, ensuring our tests compile and run reliably in CLI environments.''}
+    \textit{``Instead of mocking Axios instances directly, I integrated Mock Service Worker to intercept requests at the browser network layer. This tests real network contracts without coupling tests to Axios.''}
 \end{itemize}
 
-\subsection{Slide 29: API Layer Mocking: MSW Integration}
+\subsection{Slide 29: Stage 5: Dependency Security}
 \begin{itemize}
-    \item \textbf{On the slide:} Code example of MSW handler setup intercepting GET `/photos` requests.
+    \item \textbf{Focus:} npm audit and overrides.
     \item \textbf{Speaker Script:} 
-    \textit{``Instead of mocking Axios calls directly, I integrated Mock Service Worker. MSW intercepts outgoing network requests at the browser level and feeds them fake database data. This tests our components using real HTTP requests, keeping tests decoupled from our API library choice.''}
+    \textit{``I ran npm audits, upgraded Vite to version 6 to fix a path traversal vulnerability, and configured overrides in package.json to pin secure esbuild versions.''}
 \end{itemize}
 
-\subsection{Slide 30: Code Auditing \& Dependency Security}
+\subsection{Slide 30: Stage 5: Docker \& CI/CD}
 \begin{itemize}
-    \item \textbf{On the slide:} Using npm audit. Code block showing overrides for esbuild version pinning.
+    \item \textbf{Focus:} CI/CD pipelines.
     \item \textbf{Speaker Script:} 
-    \textit{``I performed dependency audits to secure the project. I upgraded Vite to version 6 to resolve a high-severity path traversal vulnerability, and configured overrides in package.json to lock esbuild to a secure version, cleaning our npm install warnings.''}
+    \textit{``I dockerized the project to lock Node runtimes. I also set up a GitHub Actions workflow that runs audits, formatting, and unit tests automatically on every Pull Request.''}
 \end{itemize}
 
-\subsection{Slide 31: Dockerization \& CI/CD Pipelines}
+\subsection{Slide 31: STAGE 6: Scaling the Media Pipeline}
 \begin{itemize}
-    \item \textbf{On the slide:} Docker containerization and GitHub Actions workflow diagram (auditing, formatting, unit testing).
+    \item \textbf{Focus:} Production target for 10k+ images.
     \item \textbf{Speaker Script:} 
-    \textit{``For production deployment, I dockerized the frontend and backend. I also set up a GitHub Actions workflow that automatically runs npm audit, executes our unit tests, and verifies the production build on every pull request to ensure release quality.''}
+    \textit{``In the final stage, Stage 6, we scale the pipeline. We migrate our local SQLite database and file folders to production PostGIS and AWS S3 architectures.''}
 \end{itemize}
 
-\subsection{Slide 32: Production Scaling: SQLite Limitations}
+\subsection{Slide 32: Stage 6: PostgreSQL \& PostGIS}
 \begin{itemize}
-    \item \textbf{On the slide:} SQLite limits: file locking on writes, single-process file, lack of native GIS extensions.
+    \item \textbf{Focus:} Why PostGIS.
     \item \textbf{Speaker Script:} 
-    \textit{``As we scale to thousands of photo uploads, SQLite's limitations appear. It locks the entire database file during writes, and since it is local, we cannot scale the backend horizontally. To scale this, our production path requires migrating to PostgreSQL.''}
+    \textit{``SQLite is limited by file locking and lacks spatial indexes. In production, we migrate to PostgreSQL with PostGIS, storing coordinates in geography geom columns.''}
 \end{itemize}
 
-\subsection{Slide 33: Database Migration: PostgreSQL with PostGIS}
+\subsection{Slide 33: Stage 6: GIST Spatial Indexing}
 \begin{itemize}
-    \item \textbf{On the slide:} Storing coordinates in `geom GEOGRAPHY(Point, 4326)` columns. Synchronizing geom data with lat/lng triggers.
+    \item \textbf{Focus:} GIST grids.
     \item \textbf{Speaker Script:} 
-    \textit{``In PostgreSQL, we enable the PostGIS spatial extension. We migrate separate latitude and longitude columns into a single geography geometry column using SRID 4326. We configure triggers to update this geometry column automatically whenever coordinate fields change.''}
+    \textit{``Standard indexes cannot handle 2D map grids. We index geom columns using GIST, which groups coordinates into spatial bounding boxes, bypassing full-table scans.''}
 \end{itemize}
 
-\subsection{Slide 34: Spatial Indexing: GIST on Coordinate Points}
+\subsection{Slide 34: Stage 6: Viewport Envelope Queries}
 \begin{itemize}
-    \item \textbf{On the slide:} SQL command: `CREATE INDEX ... USING GIST(geom)`. Explanation of GIST bounding box hierarchies.
+    \item \textbf{Focus:} ST_MakeEnvelope.
     \item \textbf{Speaker Script:} 
-    \textit{``B-Tree indexes cannot handle multi-dimensional map queries. PostGIS uses GIST indexing, which groups coordinate points into bounding box hierarchies. This allows the database to locate photos inside visible regions instantly, avoiding full-table scans.''}
+    \textit{``For viewport queries, we map map corners directly to PostGIS envelopes. The ST\_MakeEnvelope function and overlap operator check coordinate points inside boxes instantly.''}
 \end{itemize}
 
-\subsection{Slide 35: Bounding Box Queries: SQL ST\_MakeEnvelope}
+\subsection{Slide 35: Stage 6: Proximity to Infrastructure}
 \begin{itemize}
-    \item \textbf{On the slide:} SQL spatial query block using `ST_MakeEnvelope` and the geography overlap operator `&&`.
+    \item \textbf{Focus:} ST_DWithin queries.
     \item \textbf{Speaker Script:} 
-    \textit{``In production, our bounding box API queries map bounds directly to PostGIS envelopes. By using the ST\_MakeEnvelope function and the double ampersand operator, we query intersections quickly, returning visible points in sub-millisecond times.''}
+    \textit{``To automate inspection, we run spatial queries. Using ST\_DWithin, we query all photo coordinates taken within 50 meters of a specific pipeline route to link images to assets.''}
 \end{itemize}
 
-\subsection{Slide 36: Proximity Queries on Linear Assets}
+\subsection{Slide 36: Stage 6: Cloud Storage Architecture}
 \begin{itemize}
-    \item \textbf{On the slide:} SQL proximity query block utilizing `ST_DWithin` to find photos within 50 meters of pipeline segments.
+    \item \textbf{Focus:} S3 Presigned URLs + CDN.
     \item \textbf{Speaker Script:} 
-    \textit{``For infrastructure inspections, we can run spatial proximity queries. Using PostGIS ST\_DWithin, we can query all photo coordinates captured within 50 meters of a specific pipeline segment. This automates the correlation of inspection data to grid assets.''}
+    \textit{``To handle thousands of uploads, clients bypass our API and upload files directly to S3 using presigned URLs. We then cache and distribute files through a CDN edge.''}
 \end{itemize}
 
-\subsection{Slide 37: Cloud Storage Architecture: S3 \& CDN Delivery}
+\subsection{Slide 37: Stage 6: Cookie Session Guards}
 \begin{itemize}
-    \item \textbf{On the slide:} S3 Presigned URL workflow diagram. Serving images through CDN edge caches.
+    \item \textbf{Focus:} HttpOnly cookies & session security.
     \item \textbf{Speaker Script:} 
-    \textit{``To handle heavy image uploads, we offload media from the API server. The client requests a secure presigned upload URL from the API and uploads files directly to an S3 bucket. Images are then served through CDN caches closer to users to minimize latency.''}
+    \textit{``To protect user sessions from XSS attacks, we move JWTs out of LocalStorage into secure, HttpOnly cookies, implementing refresh token rotation on the backend.''}
 \end{itemize}
 
-\subsection{Slide 38: Retrospective: JSDOM Map Mocking}
+\subsection{Slide 38: Retrospective \& Future Roadmap}
 \begin{itemize}
-    \item \textbf{On the slide:} Hard parts: Leaflet relying on browser DOM layout sizes. Mocking container elements vs using Playwright.
+    \item \textbf{Focus:} Limitations & what's next.
     \item \textbf{Speaker Script:} 
-    \textit{``Looking back, mocking Leaflet maps inside JSDOM was the most difficult testing hurdle because Leaflet depends on actual browser window sizes. I resolved it by mocking Leaflet container APIs, but it taught me that maps are far better verified using E2E browsers like Playwright.''}
+    \textit{``In retrospective, JSDOM map mocking was a major testing challenge. For the future, I plan to move map markers to MapLibre GL WebGL canvas and integrate YOLO to detect asset defects automatically on upload.''}
 \end{itemize}
 
-\subsection{Slide 39: Future Roadmap: WebGL Tiles \& Edge Processing}
+\subsection{Slide 39: Summary \& Open Q\&A}
 \begin{itemize}
-    \item \textbf{On the slide:} Future work: MapLibre GL for WebGL rendering, Edge computing for Sharp tasks, and YOLO object detection for automated defect tagging.
+    \item \textbf{Focus:} Final wrap-up.
     \item \textbf{Speaker Script:} 
-    \textit{``For next steps, I want to migrate Leaflet markers to WebGL canvas layers like MapLibre to support over 100,000 markers. I also plan to run image resizing on edge functions and integrate YOLO computer vision models to automatically detect insulator or asset damage on upload.''}
-\end{itemize}
-
-\subsection{Slide 40: Summary \& Open Q\&A}
-\begin{itemize}
-    \item \textbf{On the slide:} Bullet points of core architecture, scaling plans, and thank you message.
-    \item \textbf{Speaker Script:} 
-    \textit{``To summarize, GeoPhoto shows how we can design a decoupled, secure, and fully tested geospatial platform ready for production scale. Thank you for your time, and I am happy to open the floor to any questions you have.''}
+    \textit{``To summarize, GeoPhoto shows how we can build a decoupled, secure, and fully validated geospatial pipeline. Thank you for your time, and I am happy to open the floor to Q\&A.''}
 \end{itemize}
 
 \end{document}

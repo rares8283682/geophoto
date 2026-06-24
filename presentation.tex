@@ -32,8 +32,8 @@
 }
 
 % Presentation Details
-\title[Full-Stack Geospatial Engineering]{Full-Stack Geospatial Engineering \& Data Pipelines}
-\subtitle{Scaling Decoupled Media Workspaces for Aerial Infrastructure Inspections}
+\title[The Inspection Media Pipeline]{The Inspection Media Pipeline}
+\subtitle{Lifecycle of an Aerial Image from Sensor Ingestion to Cloud Scale}
 \author{Rares Olteanu}
 \date{June 2026}
 
@@ -44,291 +44,260 @@
   \titlepage
 \end{frame}
 
-% Slide 2: Agenda
-\begin{frame}{Agenda}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \textbf{Part 1: Ingestion & Frontend (Slides 4-12)}
-      \begin{itemize}
-        \item EXIF & Camera Telemetry Extraction
-        \item Debounced Viewport Queries
-        \item Leaflet Marker Clustering
-      \end{itemize}
-      \textbf{Part 2: Backend & AI Pipelines (Slides 13-21)}
-      \begin{itemize}
-        \item Express API & Relational Indexes
-        \item Asynchronous Background Workers
-        \item Vision AI Error Resilience
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \textbf{Part 3: Security & Code Quality (Slides 22-26)}
-      \begin{itemize}
-        \item Cryptographic CSRNG Verification
-        \item Dead Code & Refactoring Actions
-      \end{itemize}
-      \textbf{Part 4: Testing & Pipelines (Slides 27-31)}
-      \begin{itemize}
-        \item Mocking Network Latencies with MSW
-        \item Dockerization & CI/CD Workflows
-      \end{itemize}
-      \textbf{Part 5: Production Scaling (Slides 32-40)}
-      \begin{itemize}
-        \item PostgreSQL/PostGIS Spatial Indexes
-        \item Bounding Boxes & Proximity Queries
-      \end{itemize}
-    \end{column}
-  \end{columns}
+% Slide 2: The Unified Data Pipeline Agenda
+\begin{frame}{The Pipeline Flow}
+  \begin{center}
+    \textbf{A Single Image's Journey through the GeoPhoto Stack:}
+  \end{center}
+  \begin{enumerate}
+    \item \textbf{Stage 1: Capture \& Client-Side Ingestion} (EXIF extraction, manual overrides, Leaflet viewports)
+    \item \textbf{Stage 2: The Gateway \& Media Normalization} (JWT, Sharp rotate, Express storage)
+    \item \textbf{Stage 3: Asynchronous AI Enrichment} (Gemini backgrounds, backoff retries, state updates)
+    \item \textbf{Stage 4: Security \& Quality Guardrails} (CSRNG, TTL, Code cleanups)
+    \item \textbf{Stage 5: Pipeline Validation \& Testing} (Vitest, MSW network mocking, Docker, CI/CD)
+    \item \textbf{Stage 6: Scale Target} (PostgreSQL/PostGIS, viewport envelopes, S3 presigned urls, CDN edge)
+  \end{enumerate}
 \end{frame}
 
 % Slide 3: Candidate Profile & Philosophy
-\begin{frame}{Candidate Profile \& Philosophy}
+\begin{frame}{Engineering Philosophy}
   \begin{itemize}
-    \item \textbf{Core Expertise:} Full-Stack Software Engineering, API Design, and Geospatial Data Pipelines.
-    \item \textbf{Software Quality Advocacy:} Focus on writing clean, self-documenting code, enforcing static analysis, and eliminating dead code paths.
-    \item \textbf{Robust Testing Standards:} Integrating MSW network mocking, Unit testing, and CI/CD pipelines to ensure release reliability.
-    \item \textbf{System Vision:} Designing local prototypes with a clear, documented path to cloud-scale, highly available architectures.
+    \item \textbf{Modular Pipeline Designs:} Building decoupled software where each stage does one thing well.
+    \item \textbf{Software Quality Advocacy:} Clean code architecture, removing dead logic, and strict dependency audits.
+    \item \textbf{Network-Level Verification:} Relying on MSW for API mock contracts instead of mocking client frameworks.
+    \item \textbf{Scale-First Blueprinting:} Moving local prototypes to high-availability database and storage grids.
   \end{itemize}
 \end{frame}
 
-% Slide 4: Ingestion Context: Mapping Aerial Inspection Media
-\begin{frame}{Mapping Aerial Inspection Media}
+% Slide 4: STAGE 1: Sensor Data Capture
+\begin{frame}{STAGE 1: Sensor Data Ingestion}
   \begin{columns}
     \begin{column}{0.6\textwidth}
       \begin{itemize}
-        \item \textbf{The Challenge:} Inspecting linear critical infrastructures (pipelines, power lines, rail grids) generates thousands of high-resolution images.
-        \item \textbf{Target Capabilities Needed:}
-          \begin{itemize}
-            \item Seamless metadata mapping to geographic coordinates.
-            \item High-speed visualization of media points without UI freezing.
-            \item Context-aware description and anomaly tags.
-            \item Decoupled, non-blocking upload cycles.
-          \end{itemize}
+        \item \textbf{The Ingestion Challenge:} High-resolution images are captured by sensors along critical infrastructure grids.
+        \item \textbf{Goal of Stage 1:} Parse coordinates on the client, fall back if metadata is missing, and render markers on a debounced map.
       \end{itemize}
     \end{column}
     \begin{column}{0.4\textwidth}
       \begin{center}
-        \textbf{Visual Imagery} \\
+        \textbf{Raw Image File} \\
         $\downarrow$ \\
-        \textbf{EXIF Coordinate Extraction} \\
+        \textbf{Frontend exifr Read} \\
         $\downarrow$ \\
-        \textbf{Interactive Geospatial Map}
+        \textbf{Leaflet Map Marker}
       \end{center}
     \end{column}
   \end{columns}
 \end{frame}
 
-% Slide 5: Decoupled Product Workflow
-\begin{frame}{Decoupled Product Workflow}
-  \begin{itemize}
-    \item \textbf{Dynamic Frontend Client:} A React SPA that handles heavy EXIF reading, local coordinate overrides, and Leaflet map rendering.
-    \item \textbf{Express API Server:} Lightweight REST server handling auth verification, database queries, and media formatting.
-    \item \textbf{Asynchronous Worker Processes:} Database coordinates are stored instantly, while heavy Vision AI jobs are enqueued in the background.
-    \item \textbf{Decoupled Assets:} Serve compressed images and thumbnails directly to users while preserving original files.
-  \end{itemize}
-\end{frame}
-
-% Slide 6: Frontend Tech Stack
-\begin{frame}{Frontend Tech Stack}
+% Slide 5: Stage 1: Ingestion Stack (Frontend)
+\begin{frame}{Stage 1: Ingestion Stack}
   \begin{table}
     \centering
     \begin{tabular}{lll}
       \toprule
-      \textbf{Layer} & \textbf{Technology} & \textbf{Core Purpose} \\
+      \textbf{Technology} & \textbf{Purpose} & \textbf{Pipeline Role} \\
       \midrule
-      Runtime Framework & React / Vite & Ultra-fast HMR \& Component-Driven UI \\
-      Geospatial Rendering & Leaflet / React Leaflet & Interactive maps with custom photo elements \\
-      Clustering Engine & React Leaflet Cluster & Merges dense nodes on zoom shifts \\
-      Metadata Extractor & exifr & Parses coordinate data on client thread \\
-      HTTP client & Axios & Reusable requests with JWT authorization \\
-      Testing Harness & Vitest / React Testing Library & Component-level verification \\
+      React / Vite & Core SPA Framework & Component state management \\
+      Leaflet & Geospatial Map Panel & Interactive coordinates overlay \\
+      React Leaflet Cluster & Markers Aggregation & UI performance management \\
+      exifr & Client EXIF Reader & Immediate telemetry extraction \\
+      Axios & HTTP Handler & Sends data downstream to API \\
       \bottomrule
     \end{tabular}
   \end{table}
 \end{frame}
 
-% Slide 7: Frontend Component Architecture
-\begin{frame}{Frontend Component Architecture}
+% Slide 6: Stage 1: Component Layout
+\begin{frame}{Stage 1: Component Layout}
   \begin{itemize}
-    \item \textbf{MapPage (Dashboard):} Stores global layout, search keywords, selected media states, and visible viewport coordinate bounds.
-    \item \textbf{MapView (Geospatial Panel):} Embeds the Leaflet container, dynamic marker cluster layers, and viewport movement event listeners.
-    \item \textbf{UploadModal (Ingestion Panel):} Handles drag-and-drop file inputs, calls the EXIF parser, and displays coordinate fallbacks.
-    \item \textbf{PhotoModal (Detail Panel):} Renders large image previews, displays AI descriptions, hosts comments threads, and handles owner deletion actions.
-    \item \textbf{AuthPage (Access Control):} Houses JWT token inputs, signup verify screens, and password reset flows.
+    \item \textbf{MapPage (Coordinator):} Houses overall dashboard state, selected photo IDs, and search filters.
+    \item \textbf{MapView (Spatial Visualizer):} Renders the active viewport, marker clusters, and handles map move events.
+    \item \textbf{UploadModal (File Gate):} Performs file drop checks, calls exifr, and provides fallback inputs.
+    \item \textbf{PhotoModal (Detail Inspector):} Shows full previews, AI text outputs, and handles comments.
   \end{itemize}
 \end{frame}
 
-% Slide 8: Client-Side Telemetry Extraction: EXIF Coordinate Parsing
-\begin{frame}{Client-Side Ingestion: EXIF Coordinate Parsing}
+% Slide 7: Stage 1: Client EXIF Parsing
+\begin{frame}{Stage 1: Client EXIF Ingestion}
   \begin{itemize}
-    \item \textbf{Concept:} Photos captured by GPS-enabled sensors contain rich metadata in EXIF headers (Exchangeable Image File Format).
+    \item \textbf{Concept:} Image files contain metadata blocks storing GPS tags captured at the moment of exposure.
     \item \textbf{Client-First Ingestion:}
       \begin{itemize}
-        \item Frontend reads the file locally using `exifr` before upload.
-        \item Parses latitude and longitude tags, converting degrees-minutes-seconds to decimal formats.
-        \item Autofills latitude and longitude coordinates in the upload form.
+        \item UploadModal reads the raw file locally using \texttt{exifr}.
+        \item Converts GPS coordinate formats to decimal values on the client.
+        \item Updates latitude and longitude state hooks instantly.
       \end{itemize}
-    \item \textbf{Performance Benefit:} Offloads metadata parsing overhead from the API server and gives immediate visual coordinate feedback to the user.
+    \item \textbf{Value:} Backend remains fast as it doesn't parse image binary streams for coordinates.
   \end{itemize}
 \end{frame}
 
-% Slide 9: Advanced EXIF: Reading Camera Yaw/Pitch/Roll & Altitude
-\begin{frame}{Advanced EXIF: Reading Camera Yaw/Pitch/Roll \& Altitude}
+% Slide 8: Stage 1: Advanced Telemetry (Altitude & Yaw/Pitch/Roll)
+\begin{frame}{Stage 1: Advanced Camera Telemetry}
   \begin{itemize}
-    \item \textbf{Inspection Requirements:} In infrastructure surveys (e.g. airships), knowing only the GPS position of the sensor is not enough. We also need sensor orientation.
-    \item \textbf{Telemetry Extraction:}
+    \item \textbf{Context:} Knowing where a sensor is isn't enough; we need to know where the lens was pointing.
+    \item \textbf{Extended Metadata Fields:}
       \begin{itemize}
-        \item \textbf{Altitude:} Identifies the height of the sensor (crucial for perspective calculation).
-        \item \textbf{Gimbal Angles (Yaw, Pitch, Roll):} Stored in XMP metadata schemas. Denotes the exact direction the camera was pointing relative to north and the horizon.
+        \item \textbf{Altitude:} Stored in EXIF tags, giving coordinate heights.
+        \item \textbf{Yaw, Pitch, Roll:} Camera gimbal orientation stored in XMP schemas.
       \end{itemize}
-    \item \textbf{Application:} Allows projecting the exact footprint of the photo onto the map, rather than rendering a simple point marker.
+    \item \textbf{Value:} Allows the system to project the exact ground footprint of the image onto the map instead of rendering a point.
   \end{itemize}
 \end{frame}
 
-% Slide 10: Smart User Fallbacks: Interactive Mini-Map Marker Placement
-\begin{frame}{Smart User Fallbacks: Interactive Mini-Map}
+% Slide 10: Stage 1: Fallback UI (Mini-Map clicker)
+\begin{frame}{Stage 1: Manual Coordinate Overrides}
   \begin{itemize}
-    \item \textbf{The Problem:} Over $50\%$ of web images have GPS metadata stripped due to privacy rules or sensor misconfigurations.
-    \item \textbf{UX Solution:}
+    \item \textbf{The Issue:} Over $50\%$ of web images have GPS metadata stripped due to privacy filters.
+    \item \textbf{Fallback Ingestion Flow:}
       \begin{itemize}
-        \item If EXIF parsing fails to return coordinates, the upload modal displays an interactive fallback interface.
-        \item Users can type decimal coordinates directly or click on an embedded mini Leaflet map.
-        \item Map clicks fire coordinate events, placing a visual marker and updating form inputs instantly.
+        \item If EXIF fails, coordinate inputs are displayed.
+        \item Users click on an interactive mini Leaflet map embedded in the modal.
+        \item Captures Leaflet click events and updates coordinate inputs immediately.
       \end{itemize}
-    \item \textbf{Benefit:} Guarantees that every uploaded photo remains associated with a valid spatial point.
+    \item \textbf{Benefit:} Ensures all images are successfully associated with coordinates.
   \end{itemize}
 \end{frame}
 
-% Slide 11: Interactive Map Rendering: Leaflet Marker Clustering
-\begin{frame}{Interactive Map Rendering: Leaflet Marker Clustering}
+% Slide 11: Stage 1: Viewport Performance (Marker Clustering)
+\begin{frame}{Stage 1: Marker Clustering}
   \begin{itemize}
-    \item \textbf{The Bottleneck:} Rendering hundreds of individual DOM markers in close proximity crashes browser rendering threads.
-    \item \textbf{Marker Clustering Strategy:}
+    \item \textbf{The Bottleneck:} Rendering hundreds of individual DOM markers crashes client-side mapping threads.
+    \item \textbf{Clustering Strategy:}
       \begin{itemize}
-        \item Integrates `react-leaflet-cluster` (utilizing the high-performance Supercluster library).
-        \item Groups close markers into a single cluster node containing a count badge.
-        \item Zooming in dynamically expands clusters into sub-clusters or individual photo markers.
+        \item Wraps Leaflet markers in \texttt{react-leaflet-cluster} (Supercluster library).
+        \item Aggregates close coordinates into single nodes with count badges.
+        \item Zooming in expands nodes dynamically.
       \end{itemize}
-    \item \textbf{Benefit:} Maintains high frame rates (60 FPS) when navigating dense geospatial regions.
+    \item \textbf{Benefit:} Keeps map panning at 60 FPS, even over dense areas.
   \end{itemize}
 \end{frame}
 
-% Slide 12: Client-Side Bounding Box Event Handlers
-\begin{frame}{Client-Side Bounding Box Event Handlers}
+% Slide 12: Stage 1: Viewport Event Handlers
+\begin{frame}{Stage 1: Visible Screen Bounding Boxes}
   \begin{itemize}
-    \item \textbf{Core Concept:} The map should not load the entire global photo database. It must query only what is currently visible on the screen.
-    \item \textbf{Event-Driven Fetching:}
+    \item \textbf{Concept:} The client map only requests images visible on the screen.
+    \item \textbf{Workflow:}
       \begin{itemize}
-        \item Map fires Leaflet `moveend` and `zoomend` events.
-        \item The frontend captures the active map bounding box:
-          \[ \text{bbox} = \{\text{South}, \text{West}, \text{North}, \text{East}\} \]
-        \item Passes coordinates to the API via `GET /photos?bbox=south,west,north,east`.
+        \item Map captures Leaflet's \texttt{moveend} events.
+        \item Retrieves screen bounds: Southwest and Northeast decimal coordinates.
+        \item Sends bounding box request: `GET /photos?bbox=south,west,north,east`.
       \end{itemize}
-    \item \textbf{Optimization:} The query is debounced to prevent duplicate network calls during rapid zooming or panning.
+    \item \textbf{Optimization:} Viewport requests are debounced to prevent duplicate API hits.
   \end{itemize}
 \end{frame}
 
-% Slide 13: Backend Tech Stack
-\begin{frame}{Backend Tech Stack}
-  \begin{table}
-    \centering
-    \begin{tabular}{lll}
-      \toprule
-      \textbf{Layer} & \textbf{Technology} & \textbf{Core Purpose} \\
-      \midrule
-      API Server & Node.js / Express & Lightweight, high-throughput REST API \\
-      Database Engine & SQLite / LibSQL & Local, low-latency relational database \\
-      Media Processing & Sharp & Image resizing, rotation, and metadata standardization \\
-      Authentication & jsonwebtoken / bcrypt & Secure JWT signing & password hashing \\
-      Mailer & Nodemailer & Dispatches verification codes (Ethereal Sandbox) \\
-      AI Integration & @google/generative-ai & Offloaded Vision AI content generation \\
-      \bottomrule
-    \end{tabular}
-  \end{table}
-\end{frame}
-
-% Slide 14: REST API Endpoint Design
-\begin{frame}{REST API Endpoint Design}
-  \begin{itemize}
-    \item \textbf{Decoupled REST Routing:} Organized logically around resource patterns.
-    \item \textbf{Public Endpoints:}
+% Slide 13: STAGE 2: The Gateway & Media Processing
+\begin{frame}{STAGE 2: Backend API \& Image Ingestion}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
       \begin{itemize}
-        \item `POST /auth/send-signup-code` / `POST /auth/signup` (Registration flow)
-        \item `POST /auth/login` (Returns JWT access token)
+        \item \textbf{Goal of Stage 2:} Secure the endpoint using JWTs, accept the multipart upload, normalize the image buffer, and save metadata.
+        \item \textbf{Backend Technologies:} Express, SQLite/LibSQL, Sharp, jsonwebtoken.
       \end{itemize}
-    \item \textbf{JWT-Protected Endpoints (enforcing authMiddleware):}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{POST /photos} \\
+        $\downarrow$ \\
+        \textbf{JWT Auth Guard} \\
+        $\downarrow$ \\
+        \textbf{Sharp Auto-Rotate} \\
+        $\downarrow$ \\
+        \textbf{SQLite Save}
+      \end{center>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 14: Stage 2: Endpoint Routing Design
+\begin{frame}{Stage 2: Endpoint Routing Design}
+  \begin{itemize}
+    \item \textbf{Decoupled REST Routing:} Routes are grouped around resource scopes.
+    \item \textbf{Public Access:}
       \begin{itemize}
-        \item `GET /photos` (Supports optional `bbox` coordinate parameters)
-        \item `POST /photos` (Handles multipart form uploads)
-        \item `DELETE /photos/:id` (Checks owner credentials before deleting)
-        \item `POST /photos/:id/regenerate-description` (Triggers AI updates)
-        \item `POST /comments/:photoId` (Adds user comment to thread)
+        \item `POST /auth/send-signup-code` / `POST /auth/signup`
+        \item `POST /auth/login` (Returns access token)
       \end{itemize}
-  \end{itemize}
-\end{frame}
-
-% Slide 15: Relational Data Model
-\begin{frame}{Relational Data Model}
-  \begin{itemize}
-    \item \textbf{Schema Structure:} Designed as a clean relational model to maintain referential integrity.
-    \item \textbf{Core Relations:}
+    \item \textbf{JWT Security Guards (authMiddleware):}
       \begin{itemize}
-        \item \textbf{users:} Unique ID, email (unique index), password hash, display name, and username.
-        \item \textbf{photos:} Linked to `users` (FK). Stores filename, original metadata name, decimal coordinates, and AI description string.
-        \item \textbf{comments:} Linked to `photos` (FK) and `users` (FK). Stores text content and creation timestamp.
+        \item `GET /photos` (Processes bounding boxes)
+        \item `POST /photos` (Accepts multipart uploads)
+        \item `DELETE /photos/:id` (Checks owner permissions)
+        \item `POST /comments/:photoId` (Threads comments)
       \end{itemize}
-    \item \textbf{Cascade Deletions:} Deleting a photo automatically cascades and cleans up associated comments in the database.
   \end{itemize}
 \end{frame}
 
-% Slide 16: Relational Indexing Strategy for Fast Lookups
-\begin{frame}{Relational Indexing Strategy for Fast Lookups}
+% Slide 15: Stage 2: Relational Data Model
+\begin{frame}{Stage 2: Relational Schema}
   \begin{itemize}
-    \item \textbf{Query Performance:} As databases grow, scanning full tables for spatial bounding boxes or user sessions becomes a major bottleneck.
-    \item \textbf{Index Allocations:}
+    \item \textbf{Database Tables:}
       \begin{itemize}
-        \item `CREATE UNIQUE INDEX idx_users_email ON users(email)` $\to$ Speeds up authentication checks.
-        \item `CREATE INDEX idx_photos_coords ON photos(lat, lng)` $\to$ Optimizes bounding box calculations.
-        \item `CREATE INDEX idx_photos_user ON photos(user_id)` $\to$ Speeds up user gallery views.
-        \item `CREATE INDEX idx_comments_photo ON comments(photo_id, created_at)` $\to$ Renders comment threads instantly.
+        \item \textbf{users:} ID, email (unique), password hash, and username.
+        \item \textbf{photos:} ID, user ID (FK), filename, coordinates, and AI description string.
+        \item \textbf{comments:} ID, photo ID (FK), user ID (FK), and comment text.
       \end{itemize}
+    \item \textbf{Data Integrity:} Configured cascade rules so deleting a photo automatically purges associated comment records.
   \end{itemize}
 \end{frame}
 
-% Slide 17: Media Pipeline: Normalization & Compression using Sharp
-\begin{frame}{Media Pipeline: Normalization \& Compression}
+% Slide 16: Stage 2: Fast Lookup Indexing
+\begin{frame}{Stage 2: Fast Lookup Indexing}
   \begin{itemize}
-    \item \textbf{The Orientation Bug:} Mobile photos contain EXIF orientation markers. Standard web browsers often render these rotated.
-    \item \textbf{Sharp Integration:}
+    \item \textbf{The Bottleneck:} Table scans scale poorly. We must index keys that are queried frequently.
+    \item \textbf{Index Strategy:}
       \begin{itemize}
-        \item The upload router intercepts file streams using `multer`.
-        \item Passes image buffers to `sharp`.
-        \item Executes `.rotate()` to read EXIF orientation metadata and permanently rotate the pixel grid.
-        \item Converts images to JPEG format with $80\%$ quality compression.
+        \item `idx_users_email` (unique) $\to$ Speeds up authentication lookups.
+        \item `idx_photos_coords` $\to$ Speeds up bounding box map scans.
+        \item `idx_photos_user` $\to$ Speeds up personal gallery loads.
+        \item `idx_comments_photo` $\to$ Speeds up comment thread rendering.
       \end{itemize}
-    \item \textbf{Result:} Normalizes all uploads for uniform browser display while reducing storage consumption by up to $60\%$.
   \end{itemize}
 \end{frame}
 
-% Slide 18: Asynchronous Processing Pipeline
-\begin{frame}{Asynchronous Processing Pipeline}
+% Slide 17: Stage 2: Image Processing (Sharp)
+\begin{frame}{Stage 2: Image Normalization}
   \begin{itemize}
-    \item \textbf{The Design Challenge:} Requesting Vision AI descriptions during upload blocks the HTTP response cycle, forcing users to wait up to 10 seconds.
-    \item \textbf{Asynchronous Worker Architecture:}
-  \end{itemize}
-  \begin{center}
-    Upload File $\to$ Save DB Entry $\to$ Send HTTP 201 Response $\to$ Spawn Background AI Generator
-  \end{center}
-  \begin{itemize}
-    \item \textbf{Advantage:} Users get immediate feedback. The frontend renders the new photo marker instantly, and the description fills in asynchronously.
+    \item \textbf{The Bug:} Images taken on mobile devices contain rotation EXIF tags that cause browsers to render them sideways.
+    \item \textbf{Sharp Solution:}
+      \begin{itemize}
+        \item Upload router intercepts file buffers using `multer`.
+        \item Passes buffers to `sharp`.
+        \item Calls `.rotate()` to read EXIF orientation tags and permanently rotate pixels.
+        \item Compresses file size to JPEG format at $80\%$ quality.
+      \end{itemize}
+    \item \textbf{Benefit:} Guarantees correct rendering across all browsers while saving $60\%$ disk space.
   \end{itemize}
 \end{frame}
 
-% Slide 19: Asynchronous AI Architecture: Vision Model Integration
-\begin{frame}[fragile]{Asynchronous AI Architecture: Vision Model Integration}
+% Slide 18: STAGE 3: Asynchronous Enrichment Pipeline
+\begin{frame}{STAGE 3: Non-Blocking AI Processing}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \begin{itemize}
+        \item \textbf{Goal of Stage 3:} Respond to the upload request immediately, and trigger Vision AI analysis in the background to avoid user blocking.
+        \item \textbf{AI Technologies:} Google Gemini API SDK.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{Save image metadata} \\
+        $\downarrow$ \\
+        \textbf{HTTP 201 Response} \\
+        $\downarrow$ \\
+        \textbf{Run Background AI worker} \\
+        $\downarrow$ \\
+        \textbf{Update photo row}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 19: Stage 3: Vision AI Code Integration
+\begin{frame}[fragile]{Stage 3: Vision AI Code Integration}
   \begin{itemize}
-    \item \textbf{AI Engine:} Uses the multimodal Google Gemini API to analyze visual features.
-    \item \textbf{Implementation Details:}
+    \item \textbf{AI Call:} Sends base64 image buffers directly to Google Gemini vision models.
   \end{itemize}
 \begin{lstlisting}[language=JavaScript]
 async function generateAIDescription(filePath) {
@@ -343,296 +312,292 @@ async function generateAIDescription(filePath) {
 \end{lstlisting}
 \end{frame}
 
-% Slide 20: AI Resilience: Quota Handling & Exponential Backoff
-\begin{frame}{AI Resilience: Quota Handling \& Exponential Backoff}
+% Slide 20: Stage 3: AI Quota & Retry Logic
+\begin{frame}{Stage 3: AI Quota & Retry Logic}
   \begin{itemize}
-    \item \textbf{Production Reality:} Third-party APIs face transient network drops, rate limits (429), or server congestion (503).
-    \item \textbf{Retry Strategy with Exponential Backoff:}
+    \item \textbf{Challenge:} API rate limits (429) or remote drops (503) will occasionally crash uploads.
+    \item \textbf{Retry Strategy (Exponential Backoff):}
       \begin{itemize}
-        \item If the Gemini API call fails, the helper catches the exception and waits.
-        \item Retry limit set to 3.
-        \item Delays double on each attempt: $2\text{s} \to 4\text{s} \to 8\text{s}$.
+        \item Catch API errors and pause.
+        \item Retry up to 3 times.
+        \item Delays double on each failure ($2\text{s} \to 4\text{s} \to 8\text{s}$).
       \end{itemize}
-    \item \textbf{Graceful Degradation:} If all retries fail, the description defaults to `NULL` in the database, ensuring the core upload workflow is unaffected.
+    \item \textbf{Failure Strategy:} Defaults to `NULL` in the database, leaving the core upload unaffected.
   \end{itemize}
 \end{frame}
 
-% Slide 21: Dynamic Regeneration: On-Demand AI Updates
-\begin{frame}{Dynamic Regeneration: On-Demand AI Updates}
+% Slide 21: Stage 3: Manual AI Regeneration
+\begin{frame}{Stage 3: Manual AI Regeneration}
   \begin{itemize}
-    \item \textbf{Use Case:} If AI fails during initial upload (or if API keys were not configured yet), users shouldn't have to re-upload.
-    \item \textbf{Interactive Trigger:}
-      \begin{itemize}
-        \item The photo detail modal displays a "Regenerate Description" button.
-        \item Invokes `POST /photos/:id/regenerate-description`.
-        \item Runs the AI pipeline, updates the database row, and returns the description to update the frontend state.
-      \end{itemize}
-    \item \textbf{Benefit:} Gives users control and provides a fallback mechanism for temporary API outages.
+    \item \textbf{Use Case:} If the AI fails or is disabled during upload, users can trigger updates manually.
+    \item \textbf{Route:} `POST /photos/:id/regenerate-description`.
+    \item \textbf{Action:} Calls the AI backoff helper, writes the description to the photo row, and returns the string to update the frontend state.
   \end{itemize}
 \end{frame}
 
-% Slide 22: Stateless Authentication: JWT Verification Middleware
-\begin{frame}{Stateless Authentication: JWT Verification}
+% Slide 22: STAGE 4: Security & Quality Guardrails
+\begin{frame}{STAGE 4: Security \& Quality Guardrails}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \begin{itemize}
+        \item \textbf{Goal of Stage 4:} Replace weak pseudo-random generation with secure modules, write strict token lifecycles, and refactor dead code.
+        \item \textbf{Security Tools:} crypto, jsonwebtoken.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{crypto.randomInt} \\
+        $\downarrow$ \\
+        \textbf{10-minute expiry} \\
+        $\downarrow$ \\
+        \textbf{Delete token on use} \\
+        $\downarrow$ \\
+        \textbf{Clean .env config}
+      \end{center>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 23: Stage 4: Cryptographically Secure OTPs
+\begin{frame}{Stage 4: Secure OTP Generation}
   \begin{itemize}
-    \item \textbf{Concept:} Session states are not stored on the server. The server verifies incoming requests mathematically.
-    \item \textbf{JWT Flow:}
-      \begin{itemize}
-        \item Successful login returns a token signed using a server-side secret (`JWT_SECRET`).
-        \item Token contains user ID and email credentials.
-      \end{itemize}
-    \item \textbf{Guard Middleware:}
-      \begin{itemize}
-        \item Intercepts requests, parses the `Authorization: Bearer <token>` header.
-        \item Calls `jwt.verify()`.
-        \item If valid, extracts payload and passes control to the route handler. Otherwise, returns a `401 Unauthorized` response.
-      \end{itemize}
+    \item \textbf{The Risk:} \texttt{Math.random()} is predictable. If a hacker reverse-engineers the seed, they can guess signup and reset codes.
+    \item \textbf{Solution:} Replaced Math.random with Node's native \texttt{crypto.randomInt(10000000, 100000000)}.
+    \item \textbf{Benefit:} Uses OS-level entropy to generate unpredictable 8-digit verification codes.
   \end{itemize}
 \end{frame}
 
-% Slide 23: Cryptographically Secure OTP Generation
-\begin{frame}{Cryptographically Secure OTP Generation}
+% Slide 24: Stage 4: Expiration & Single-Use revokes
+\begin{frame}{Stage 4: Expiration \& Revocation}
   \begin{itemize}
-    \item \textbf{Vulnerability Fixed:} Standard random functions (`Math.random()`) are pseudo-random and vulnerable to prediction attacks.
-    \item \textbf{Implementation Upgrade:}
+    \item \textbf{Lifecycle Rules:}
       \begin{itemize}
-        \item Replaced Math.random with Node's native `crypto.randomInt()`.
-        \item Generates high-entropy 8-digit verification codes.
-      \end{itemize}
-    \item \textbf{Why it matters:} Ensures that verification and reset tokens cannot be guessed, establishing a secure baseline for registration and password resets.
-  \end{itemize}
-\end{frame}
-
-% Slide 24: Code Lifecycle Security: TTL & Single-Use Cleanup
-\begin{frame}{Code Lifecycle Security: TTL \& Single-Use Cleanup}
-  \begin{itemize}
-    \item \textbf{State Control:} Codes are stored in an in-memory mapping with security constraints.
-    \item \textbf{Expiry Time-to-Live (TTL):}
-      \begin{itemize}
-        \item Active lifetime is restricted to 10 minutes (`expiresAt: Date.now() + 10 * 60 * 1000`).
-        \item Expired codes are rejected and removed from memory.
-      \end{itemize}
-    \item \textbf{Single-Use Deletion:}
-      \begin{itemize}
-        \item Immediately deletes the stored code record upon first successful validation.
+        \item Codes are mapped in memory with an expiration: `expiresAt: Date.now() + 10 * 60 * 1000` (10-min TTL).
+        \item Expired codes are automatically deleted.
+        \item Valid codes are deleted instantly upon successful verification.
       \end{itemize}
     \item \textbf{Benefit:} Prevents brute-force attempts and replay attacks.
   \end{itemize}
 \end{frame}
 
-% Slide 25: Code Quality Refactoring: Clean Architecture
-\begin{frame}{Code Quality Refactoring: Clean Architecture}
+% Slide 25: Stage 4: Clean Architecture Refactoring
+\begin{frame}{Stage 4: Clean Code Refactoring}
   \begin{itemize}
-    \item \textbf{Refactoring Operations:}
+    \item \textbf{Refactoring Steps:}
       \begin{itemize}
-        \item Cleaned frontend state logic by removing dead variables (`verificationCode`) and client-side code generation.
-        \item Structured backend folders: `routes/` (endpoints), `middleware/` (guards), `utils/` (email helpers).
-        \item Removed informal debug strings and signatures from production mailers.
+        \item Removed unused verification state and client generators in AuthPage.jsx.
+        \item Cleaned out all informal debug strings from email notifications.
+        \item Split routes, middleware, and database layers into distinct folders.
       \end{itemize}
-    \item \textbf{Results:} Avoids compiler and linter warnings, simplifies codebase onboarding, and presents a professional standard to reviewers.
+    \item \textbf{Benefit:} Ensures linting passes and keeps the code ready for team reviews.
   \end{itemize}
 \end{frame}
 
-% Slide 26: Environment Portability: Configurable APIs
-\begin{frame}{Environment Portability: Configurable APIs}
+% Slide 26: Stage 4: Environment Portability
+\begin{frame}{Stage 4: Environment Portability}
   \begin{itemize}
-    \item \textbf{The Issue:} Hardcoded environment variables require code updates for different deployments.
-    \item \textbf{Solution:} Moved all configurations to environment variables:
+    \item \textbf{Configuration Isolation:} Moved all parameters out of code files.
+    \item \textbf{Settings:}
       \begin{itemize}
-        \item `VITE_API_BASE_URL` dynamically routes the frontend client.
-        \item `FRONTEND_URL` configures CORS origins on the backend.
-        \item `GEMINI_API_KEY` enables or disables the AI subsystem.
-        \item `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` manages email routing (with automatic fallback to Ethereal sandbox accounts).
+        \item `VITE_API_BASE_URL` routes frontend Axios requests.
+        \item CORS uses `FRONTEND_URL`.
+        \item `GEMINI_API_KEY` controls the AI generation layer.
       \end{itemize}
-    \item \textbf{Benefit:} Code remains unchanged. Environment-specific settings are injected at runtime.
+    \item \textbf{Mailer Fallback:} Automatically falls back to Ethereal sandboxes if SMTP keys are empty.
   \end{itemize}
 \end{frame}
 
-% Slide 27: Testing Philosophy: Unit vs. E2E Tests
-\begin{frame}{Testing Philosophy: Unit vs. E2E Tests}
+% Slide 27: STAGE 5: Pipeline Testing & CI/CD
+\begin{frame}{STAGE 5: Pipeline Validation \& Testing}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \begin{itemize}
+        \item \textbf{Goal of Stage 5:} Assert component behavior, mock the API network layer, resolve dependencies, and automate checks.
+        \item \textbf{Testing Stack:} Vitest, JSDOM, MSW, Docker, GitHub Actions.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{JSDOM DOM Mocks} \\
+        $\downarrow$ \\
+        \textbf{MSW Interceptors} \\
+        $\downarrow$ \\
+        \textbf{package overrides} \\
+        $\downarrow$ \\
+        \textbf{GitHub PR Actions}
+      \end{center>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 28: Stage 5: DOM & Map API Mocking
+\begin{frame}{Stage 5: DOM \& Leaflet Mocking}
   \begin{itemize}
-    \item \textbf{Scope:} Testing is split into distinct strategies to ensure code stability.
-    \item \textbf{Unit Tests (Vitest + React Testing Library):}
+    \item \textbf{Challenge:} Headless testing environments (JSDOM) lack window APIs like `localStorage` or Leaflet element measurements.
+    \item \textbf{Mocking Setup (setup.ts):}
       \begin{itemize}
-        \item Fast execution (runs in milliseconds).
-        \item Verifies component-level logic (e.g. upload coordinates update when EXIF succeeds).
+        \item Mocked `localStorage` and `URL.createObjectURL`.
+        \item Mocked Leaflet Container renders to bypass screen height crashes.
       \end{itemize}
-    \item \textbf{E2E Tests (Playwright):}
-      \begin{itemize}
-        \item Simulates complete user actions in real browsers.
-        \item Best suited for verifying Leaflet map panning, zooming, and drag-and-drop file ingestion.
-      \end{itemize}
+    \item \textbf{Outcome:} Tests run reliably on CLI runners.
   \end{itemize}
 \end{frame}
 
-% Slide 28: Vitest Configuration & Setup Mocks
-\begin{frame}{Vitest Configuration \& Setup Mocks}
+% Slide 29: Stage 5: MSW Network Interceptors
+\begin{frame}[fragile]{Stage 5: MSW Network Mocking}
   \begin{itemize}
-    \item \textbf{Headless DOM Simulation:} Vitest runs tests in `jsdom`. However, `jsdom` lacks definitions for several browser-native window features.
-    \item \textbf{Mocking Setup File (`setup.ts`):}
-      \begin{itemize}
-        \item Mocked `window.localStorage` to support state persistence tests.
-        \item Mocked `URL.createObjectURL` to prevent exceptions when generating upload image previews.
-        \item Mocked Leaflet DOM resize behaviors that rely on physical window sizes.
-      \end{itemize}
-    \item \textbf{Benefit:} Tests run reliably in headless CLI environments (essential for CI/CD pipelines).
-  \end{itemize>
-\end{frame}
-
-% Slide 29: API Layer Mocking: MSW (Mock Service Worker)
-\begin{frame}[fragile]{API Layer Mocking: MSW Integration}
-  \begin{itemize}
-    \item \textbf{Strategy:} Instead of mocking global Axios instances (which couples tests to implementation details), we intercept network requests.
+    \item \textbf{Design:} MSW intercepts real network requests, returning simulated data payloads.
   \end{itemize}
 \begin{lstlisting}[language=JavaScript]
 const handlers = [
   http.get('http://localhost:3001/photos', () => {
     return HttpResponse.json([
-      { id: 1, lat: 48.8566, lng: 2.3522, filename: 'paris.jpg', original_name: 'Paris Photo', ai_description: 'Eiffel Tower' }
+      { id: 1, lat: 48.8, lng: 2.3, filename: 'paris.jpg', original_name: 'Paris', ai_description: 'Eiffel Tower' }
     ]);
   })
 ];
 const server = setupServer(...handlers);
 \end{lstlisting}
   \begin{itemize}
-    \item \textbf{Benefit:} Tests execute real Axios requests against a mock network layer, validating exact endpoint contracts.
+    \item \textbf{Benefit:} Tests are decoupled from Axios. Changing HTTP clients doesn't break tests.
   \end{itemize}
 \end{frame}
 
-% Slide 30: Code Auditing & Dependency Security
-\begin{frame}{Code Auditing \& Dependency Security}
+% Slide 30: Stage 5: Vulnerability Remediation
+\begin{frame}{Stage 5: Dependency Security}
   \begin{itemize}
-    \item \textbf{Vulnerability Management:} Run `npm audit` inside automated checks.
-    \item \textbf{Resolving Critical Advisories:}
+    \item \textbf{Audit Work:} Executed `npm audit` to identify vulnerabilities.
+    \item \textbf{Upgrades:}
       \begin{itemize}
-        \item Add `overrides` in `package.json` to force safe versions of sub-dependencies:
-\begin{lstlisting}[language=JSON]
-  "overrides": {
-    "esbuild": "^0.25.0"
-  }
-\end{lstlisting}
-        \item Upgraded development dependencies (e.g. `vite` to version `^6.4.2`) to resolve high-severity path traversal vulnerabilities.
+        \item Upgraded Vite to version 6 to resolve a high-severity path traversal.
+        \item Configured `overrides` in package.json to pin `esbuild@^0.25.0` to resolve CORS risks.
       \end{itemize}
-    \item \textbf{Benefit:} Protects the code supply chain from remote exploits.
+    \item \textbf{Result:} A clean, secure build dependency tree.
   \end{itemize}
 \end{frame}
 
-% Slide 31: Dockerization & CI/CD Pipelines
-\begin{frame}{Dockerization \& CI/CD Pipelines}
+% Slide 31: Stage 5: Dockerization & CI/CD Pipelines
+\begin{frame}{Stage 5: Docker \& CI/CD}
   \begin{itemize}
-    \item \textbf{Containerization (Docker):}
+    \item \textbf{Containers:} Dockerfiles package the Node runtime to eliminate local environment discrepancies.
+    \item \textbf{GitHub Actions Pipeline:}
       \begin{itemize}
-        \item Package the Express backend and React frontend into standardized images.
-        \item Prevents *"works on my machine"* issues by locking Node.js runtimes and package boundaries.
+        \item Runs on every Pull Request.
+        \item Automatically triggers audit checks, runs Vitest unit suites, and compiles production builds before merging.
       \end{itemize}
-    \item \textbf{CI/CD Automation (GitHub Actions):}
+  \end{itemize}
+\end{frame}
+
+% Slide 32: STAGE 6: Production Scale Architecture
+\begin{frame}{STAGE 6: Scaling the Media Pipeline}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
       \begin{itemize}
-        \item Triggers on every Pull Request.
-        \item Runs code audits (`npm audit`), checks formatting, executes unit tests (`vitest run`), and runs production build scripts.
+        \item \textbf{Goal of Stage 6:} Migrate SQLite to PostGIS, optimize spatial lookups, use S3 direct uploads, and deploy CDN caching.
       \end{itemize}
-    \item \textbf{Outcome:} Guarantees code quality before merging to production branches.
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{PostgreSQL + PostGIS} \\
+        $\downarrow$ \\
+        \textbf{ST\_MakeEnvelope Envelope} \\
+        $\downarrow$ \\
+        \textbf{ST\_DWithin Proximity} \\
+        $\downarrow$ \\
+        \textbf{S3 Presigned URLs + CDN}
+      \end{center>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 33: Stage 6: PostGIS Migration
+\begin{frame}{Stage 6: PostgreSQL & PostGIS}
+  \begin{itemize}
+    \item \textbf{SQLite Limits:} File locks on writes, lacks horizontal scale, and lacks spatial indexes.
+    \item \textbf{PostGIS Database:}
+      \begin{itemize}
+        \item Store points inside a `geom GEOGRAPHY(Point, 4326)` column.
+        \item Configure database triggers to synchronize `geom` values whenever lat/lng changes.
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
-% Slide 32: Production Scaling: SQLite Limitations
-\begin{frame}{Production Scaling: SQLite Limitations}
+% Slide 34: Stage 6: GIST Spatial Indexing
+\begin{frame}{Stage 6: GIST Spatial Indexing}
   \begin{itemize}
-    \item \textbf{Write Concurrency:} SQLite locks the entire database file on writes, causing write bottlenecks under high concurrent uploads.
-    \item \textbf{Single-Process Dependency:} SQLite lives as a local file, making it impossible to scale the backend horizontally across multiple server nodes.
-    \item \textbf{Missing Spatial Features:} SQLite lacks native, optimized spatial indices and geospatial operations required for location queries.
-    \item \textbf{Production Path:} Migrate the database layer to PostgreSQL.
+    \item \textbf{Concept:} B-Tree indexes cannot handle 2D coordinates. We use GIST (Generalized Search Tree) indexes.
+    \item \textbf{Command:}
+      \lstinline[language=SQL]{CREATE INDEX idx_photos_geom ON photos USING GIST(geom);}
+    \item \textbf{Action:} Groups coordinate points into visible spatial grids. Bypasses full-table scans.
   \end{itemize}
 \end{frame}
 
-% Slide 33: Database Migration: PostgreSQL with PostGIS
-\begin{frame}{PostgreSQL \& PostGIS Migration}
+% Slide 35: Stage 6: Bounding Box Queries (ST_MakeEnvelope)
+\begin{frame}[fragile]{Stage 6: Viewport Envelope Queries}
   \begin{itemize}
-    \item \textbf{Why PostGIS:} PostGIS extends PostgreSQL with geographic objects and spatial query capabilities.
-    \item \textbf{Spatial Data types:} Store coordinates inside a single `geom GEOGRAPHY(Point, 4326)` column.
-    \item \textbf{SRID 4326:} Uses the standard WGS 84 spatial reference system (latitude/longitude coordinates used by GPS).
-    \item \textbf{Automatic Updates:} Configure trigger functions to update the `geom` geography column automatically whenever `lat` or `lng` fields are updated.
+    \item \textbf{Algorithm:} Coordinates visible on screen are mapped to PostGIS envelopes.
   \end{itemize}
-\end{frame}
-
-% Slide 34: Spatial Indexing: GIST on Coordinate Points
-\begin{frame}{Spatial Indexing: GIST on Coordinate Points}
-  \begin{itemize}
-    \item \textbf{The Problem:} Standard B-Tree indexes sort one-dimensional data. They cannot index two-dimensional geographic boundaries efficiently.
-    \item \textbf{GIST Index (Generalized Search Tree):}
-      \[ \text{CREATE INDEX idx\_photos\_geom ON photos USING GIST(geom);} \]
-    \item \textbf{How it works:} GIST indexes group spatial shapes into bounding boxes. Queries can quickly traverse these boxes without executing full-table scans.
-    \item \textbf{Performance Result:} Viewport queries execute in sub-millisecond times, even over millions of photo entries.
-  \end{itemize}
-\end{frame}
-
-% Slide 35: Bounding Box Queries: SQL ST_MakeEnvelope
-\begin{frame}[fragile]{Bounding Box Queries: SQL ST\_MakeEnvelope}
-  \begin{itemize}
-    \item \textbf{Algorithm:} Translate visible map coordinate boundaries directly to PostGIS envelopes.
-    \item \textbf{SQL Spatial Query:}
 \begin{lstlisting}[language=SQL]
-SELECT id, filename, lat, lng, ai_description 
-FROM photos 
+SELECT id, filename FROM photos 
 WHERE geom && ST_MakeEnvelope(west, south, east, north, 4326);
 \end{lstlisting}
-    \item \textbf{Operator `\&\&`:} The bounding box intersection operator. Checks if the geographic coordinate point lies within the bounding box polygon.
-    \item \textbf{Optimization:} Bypasses heavy geometry calculations to return viewport data instantly.
+  \begin{itemize}
+    \item \textbf{Operator `\&\&`:} Bounding box intersection check. Bypasses expensive geometry calculations to return viewport data instantly.
   \end{itemize}
 \end{frame}
 
-% Slide 36: Proximity Queries on Linear Assets
-\begin{frame}[fragile]{Proximity Queries on Linear Assets}
+% Slide 36: Stage 6: Proximity Queries on Linear Assets
+\begin{frame}[fragile]{Stage 6: Proximity to Infrastructure}
   \begin{itemize}
-    \item \textbf{Inspection Need:} Identify all inspection photos captured within 50 meters of a specific gas pipeline or power line segment.
-    \item \textbf{PostGIS Proximity SQL:}
+    \item \textbf{Use Case:} Find all photos captured within 50 meters of a specific pipeline segment.
+  \end{itemize}
 \begin{lstlisting}[language=SQL]
-SELECT p.id, p.filename, p.original_name
-FROM photos p, infrastructure_lines i
-WHERE i.id = :lineId
-  AND ST_DWithin(p.geom, i.geom, 50.0);
+SELECT p.id, p.filename FROM photos p, pipeline_routes i
+WHERE i.id = :lineId AND ST_DWithin(p.geom, i.geom, 50.0);
 \end{lstlisting}
-    \item \textbf{ST\_DWithin:} Computes the shortest distance between geometries on a geoid, utilizing spatial indexes for high-speed lookups.
-    \item \textbf{Value:} Automates correlation of inspection photos to asset IDs.
+  \begin{itemize}
+    \item \textbf{ST\_DWithin:} Fast spatial distance validation using geography coordinates. Automates linking inspection images to asset IDs.
   \end{itemize}
 \end{frame}
 
-% Slide 37: Cloud Storage Architecture: S3 & CDN Delivery
-\begin{frame}{Cloud Storage Architecture: S3 \& CDN Delivery}
+% Slide 37: Stage 6: S3 Presigned Uploads & CDNs
+\begin{frame}{Stage 6: Cloud Storage Architecture}
   \begin{itemize}
-    \item \textbf{Storage Migration:} Move images out of the Express server folder to S3-compatible object storage (AWS S3, Cloudflare R2).
-    \item \textbf{Presigned URLs:} Frontend requests upload $\to$ API returns a secure, short-lived presigned S3 URL $\to$ Client uploads image directly to S3.
-    \item \textbf{Asset Delivery Pipeline:}
-  \end{itemize}
-  \begin{center}
-    Client Request $\to$ CDN Edge Cache (Cloudflare/CloudFront) $\to$ S3 Bucket Source
-  \end{center}
-  \begin{itemize}
-    \item \textbf{Benefit:} Reduces API server load, improves global image load times, and secures storage buckets behind access rules.
+    \item \textbf{Presigned URLs:} Client requests upload URL $\to$ API returns S3 presigned URL $\to$ Client uploads directly to S3 bucket. Node server resources remain untouched.
+    \item \textbf{CDN edge caches:} Serve images through a CDN (Cloudflare/CloudFront) to cache content regionally and reduce download times.
   \end{itemize}
 \end{frame}
 
-% Slide 38: Retrospective: JSDOM Map Mocking
-\begin{frame}{Retrospective: JSDOM Map Mocking}
+% Slide 38: Stage 6: Cookie-based session security
+\begin{frame}{Stage 6: Cookie Session Guards}
   \begin{itemize}
-    \item \textbf{What was difficult:} Leaflet depends on actual browser DOM layout properties (e.g. `clientHeight`). Since JSDOM runs in a headless Node console, Leaflet maps threw rendering errors during unit tests.
-    \item \textbf{How we solved it:} Created custom global mocks in `setup.ts` to bypass bounds calculations and mock Leaflet event registers.
-    \item \textbf{Key Learning:} Map components are highly visual. While unit tests are great for forms and state logic, **Playwright End-to-End tests** are much better suited for validating interactive map views.
+    \item \textbf{The Risk:} Storing JWTs in LocalStorage exposes tokens to Cross-Site Scripting (XSS).
+    \item \textbf{Production Design:}
+      \begin{itemize}
+        \item Store access tokens in memory or short-lived secure cookies.
+        \item Store refresh tokens in HttpOnly, Secure, SameSite cookies.
+        \item Rotate refresh tokens on each session update to block token theft.
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
-% Slide 39: Future Roadmap: WebGL Tiles & Edge Processing
-\begin{frame}{Future Roadmap: WebGL Tiles \& Edge Processing}
+% Slide 39: Retrospective, Challenges & Roadmap
+\begin{frame}{Retrospective \& Future Roadmap}
   \begin{itemize}
-    \item \textbf{WebGL Rendering (MapLibre GL):} Switch Leaflet DOM markers to WebGL canvas vector layers. Allows rendering $100,000+$ coordinate markers simultaneously without client lag.
-    \item \textbf{Edge Computing Pipelines:} Move image resizing and AI processing to serverless edge workers (Cloudflare Workers/AWS Lambda). Offloads CPU-intensive image tasks from our core Express API.
-    \item \textbf{Automated Computer Vision:} Integrate object detection models (YOLO, Segment Anything) into the upload stream to automatically detect asset defects (insulator damage, pipeline leaks) and tag them with coordinates.
+    \item \textbf{Challenges:} Mocking Leaflet maps in headless JSDOM environments was difficult, proving E2E tests (Playwright) are better suited for map interfaces.
+    \item \textbf{Future Work:}
+      \begin{itemize}
+        \item Move Leaflet markers to WebGL canvas layers (MapLibre GL) to support over $100,000$ points.
+        \item Integrate YOLO object detection models into the upload flow to automatically flag insulator or pipeline defects.
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
-% Slide 40: Summary & Open Q&A
+% Slide 40: Conclusion & Open Q&A
 \begin{frame}{Summary \& Open Q\&A}
   \begin{columns}
     \begin{column}{0.5\textwidth}
-      \textbf{GeoPhoto Core Architecture:}
+      \textbf{GeoPhoto Core Highlights:}
       \begin{itemize}
         \item Decoupled client-server design.
         \item Secure authentication & AI worker queues.
