@@ -1,0 +1,662 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{color}
+
+% Custom Premium Indigo/Slate Color Theme
+\definecolor{slate}{RGB}{30, 41, 59}
+\definecolor{indigo}{RGB}{79, 70, 229}
+\definecolor{teal}{RGB}{13, 148, 136}
+
+\setbeamercolor{palette primary}{bg=slate,fg=white}
+\setbeamercolor{palette secondary}{bg=indigo,fg=white}
+\setbeamercolor{palette tertiary}{bg=slate,fg=white}
+\setbeamercolor{titlelike}{parent=palette primary}
+\setbeamercolor{structure}{fg=indigo}
+
+\lstset{
+  basicstyle=\ttfamily\tiny,
+  keywordstyle=\color{indigo}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{teal},
+  showstringspaces=false,
+  breaklines=true
+}
+
+% Presentation Details
+\title[Full-Stack \& Predictive Systems]{Full-Stack Engineering \& Sports Analytics}
+\subtitle{GeoPhoto Geospatial Platform \& World Cup 2026 Simulator}
+\author{Rares Solteanu}
+\date{June 2026}
+
+\begin{document}
+
+% Slide 1: Title Slide
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Slide 2: Agenda
+\begin{frame}{Agenda}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{Part 1: GeoPhoto Platform (Slides 4-21)}
+      \begin{itemize}
+        \item Product Scope \& Architecture
+        \item EXIF Parsing \& Bounding Box Queries
+        \item Asynchronous AI Pipeline (Gemini)
+        \item Cryptographic Token Security
+        \item Automated Vitest/MSW Testing
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{Part 2: World Cup 2026 Simulator (Slides 22-31)}
+      \begin{itemize}
+        \item Predictive Modeling & Elo Ratings
+        \item Poisson Goal Distribution
+        \item Monte Carlo Simulation Engine
+      \end{itemize}
+      \textbf{Part 3: Production & Scaling (Slides 32-40)}
+      \begin{itemize}
+        \item PostGIS Spatial Indexes
+        \item Object Storage & CDN
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 3: Candidate Profile
+\begin{frame}{Candidate Profile}
+  \begin{itemize}
+    \item \textbf{Core Focus:} Full-Stack Software Engineering \& Data Science.
+    \item \textbf{Engineering Philosophy:} Prioritizing decoupled architectures, automated validation, and cryptographically secure pipelines.
+    \item \textbf{Key Projects:}
+      \begin{itemize}
+        \item \textbf{GeoPhoto:} Interactive geospatial media mapping system with background AI enrichment.
+        \item \textbf{World Cup 2026 Simulator:} Monte Carlo simulation and predictive modeling system.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 4: Project 1 - Introduction to GeoPhoto
+\begin{frame}{Project 1: GeoPhoto Geospatial Platform}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \begin{itemize}
+        \item \textbf{Concept:} A modern web platform to upload, cluster, and discuss photos linked to geographical coordinates.
+        \item \textbf{Target Problems Solved:}
+          \begin{itemize}
+            \item Seamless coordinate ingestion (EXIF vs Manual fallback).
+            \item Clustered visualization to prevent client UI lag.
+            \item Contextual photo summaries using Vision AI.
+            \item High-availability backend routing.
+          \end{itemize}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{React Client} \\
+        $\updownarrow$ \\
+        \textbf{Express API} \\
+        $\updownarrow$ \\
+        \textbf{SQLite (Local)}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 5: GeoPhoto - Core Feature Set
+\begin{frame}{GeoPhoto: Core Feature Set}
+  \begin{itemize}
+    \item \textbf{Interactive Mapping:} Fully responsive map interface using React Leaflet.
+    \item \textbf{Marker Clustering:} Dynamically aggregates dense nodes into regional clusters.
+    \item \textbf{Metadata Extraction:} Ingests images, parses EXIF headers, and extracts coordinate data.
+    \item \textbf{AI Narration Engine:} Creates descriptions automatically in the background.
+    \item \textbf{Social Interactions:} Threads comments and allows owner-only deletions.
+    \item \textbf{Security Operations:} Handles OTP generation, account verification, and session JWTs.
+  \end{itemize}
+\end{frame}
+
+% Slide 6: GeoPhoto - Tech Stack
+\begin{frame}{GeoPhoto: Tech Stack}
+  \begin{table}
+    \centering
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+      \midrule
+      Frontend & React / Vite & Core UI & SPA Development \\
+      Maps & Leaflet & Geospatial Rendering \\
+      Backend & Node.js / Express & REST API Endpoints \\
+      Database & LibSQL / SQLite & Relational Storage \\
+      Image Processing & Sharp & Image Rotation & Compression \\
+      Testing & Vitest & Unit & Integration Tests \\
+      API Mocking & MSW & Mock Service Worker \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% Slide 7: GeoPhoto - Decoupled Architecture
+\begin{frame}{GeoPhoto: Decoupled Architecture}
+  \begin{itemize}
+    \item \textbf{Decoupled Frontend:} Built as a static client, easily deployable to CDNs (Vercel, Cloudflare Pages).
+    \item \textbf{State Management:} Uses React Context for authenticating user state globally.
+    \item \textbf{Configurable Client Routing:} Frontend endpoints depend on `VITE_API_BASE_URL` rather than hardcoding local ports.
+    \item \textbf{Separation of Concerns:} Heavy computing (image resizing, AI processing, mailer queues) is isolated on the backend.
+  \end{itemize}
+\end{frame}
+
+% Slide 8: GeoPhoto - Frontend Component Layout
+\begin{frame}{GeoPhoto: Frontend Component Layout}
+  \begin{itemize}
+    \item \textbf{AuthPage:} Manages verification codes, signups, and password reset workflows.
+    \item \textbf{MapPage:} Holds the primary dashboard layout, sidebar list, and viewport queries.
+    \item \textbf{MapView:} Houses Leaflet container, dynamic marker renderers, and bounding box events.
+    \item \textbf{UploadModal:} Handles file dragging, EXIF reading, and manual coordinate override mini-maps.
+    \item \textbf{PhotoModal:} Shows metadata detail view, AI description controls, owner deletion, and comments thread.
+  \end{itemize}
+\end{frame}
+
+% Slide 9: GeoPhoto - Backend REST API Design
+\begin{frame}{GeoPhoto: Backend REST API Design}
+  \begin{itemize}
+    \item \textbf{Structure:} Organized around resources under a global prefix.
+    \item \textbf{Endpoints:}
+      \begin{itemize}
+        \item `/auth/*`: Signups, token logins, and password resets.
+        \item `/photos`: `POST` uploads, `GET` queries (with optional `bbox`), `DELETE` by ID.
+        \item `/photos/:id/regenerate-description`: `POST` triggers background AI.
+        \item `/comments/:photoId`: `GET` list, `POST` thread comments.
+      \end{itemize}
+    \item \textbf{Security:} Sensitive endpoints enforce `authMiddleware` verifying JWT headers.
+  \end{itemize}
+\end{frame}
+
+% Slide 10: GeoPhoto - Database Schema
+\begin{frame}{GeoPhoto: Database Schema}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{users}
+      \begin{itemize}
+        \item `id` (INTEGER, PK)
+        \item `email` (TEXT, UNIQUE)
+        \item `password_hash` (TEXT)
+        \item `username` (TEXT)
+      \end{itemize}
+      \textbf{comments}
+      \begin{itemize}
+        \item `id` (INTEGER, PK)
+        \item `photo_id` (INTEGER, FK)
+        \item `user_id` (INTEGER, FK)
+        \item `body` (TEXT)
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{photos}
+      \begin{itemize}
+        \item `id` (INTEGER, PK)
+        \item `user_id` (INTEGER, FK)
+        \item `filename` (TEXT)
+        \item `original_name` (TEXT)
+        \item `lat` (REAL)
+        \item `lng` (REAL)
+        \item `ai_description` (TEXT)
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 11: GeoPhoto - Indexing Strategy
+\begin{frame}{GeoPhoto: Indexing Strategy}
+  \begin{itemize}
+    \item \textbf{Sign-In Speed:} Created a unique index on `users(email)` to guarantee fast lookup during login checks.
+    \item \textbf{Mapping Performance:} Index placed on `photos(lat, lng)` to speed up database coordinate filtering.
+    \item \textbf{Relational Integrity Queries:} Index placed on `comments(photo_id, created_at)` to support immediate rendering of threads sorted chronologically.
+    \item \textbf{Owner Actions:} Index placed on `photos(user_id)` to speed up queries pulling a user's upload gallery.
+  \end{itemize}
+\end{frame}
+
+% Slide 12: GeoPhoto - EXIF Coordinate Ingestion
+\begin{frame}{GeoPhoto: EXIF Coordinate Ingestion}
+  \begin{itemize}
+    \item \textbf{Mechanism:} When a user selects a photo, the browser executes `exifr` parser to extract GPS tags without uploading first.
+    \item \textbf{Data Extraction Flow:}
+  \end{itemize}
+  \begin{center}
+    File Selection $\to$ EXIF Array Buffer $\to$ Decimal Coordinates $\to$ Autofill Latitude/Longitude
+  \end{center}
+  \begin{itemize}
+    \item \textbf{User Experience:} Eliminates manual coordinate entry for geotagged mobile photos.
+  \end{itemize}
+\end{frame}
+
+% Slide 13: GeoPhoto - Manual Coordinate Fallback UI
+\begin{frame}{GeoPhoto: Manual Coordinate Fallback UI}
+  \begin{itemize}
+    \item \textbf{Problem:} Over $50\%$ of web images have EXIF GPS tags stripped (social media, manual exports).
+    \item \textbf{UX Mitigation:}
+      \begin{itemize}
+        \item If EXIF fails, the upload modal displays a coordinate input.
+        \item Users can manually click on an interactive mini-map inside the modal.
+        \item Captures coordinate events, placing a marker and updating inputs instantly.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 14: GeoPhoto - Asynchronous AI Pipeline
+\begin{frame}[fragile]{GeoPhoto: Asynchronous AI Pipeline}
+  \begin{itemize}
+    \item \textbf{Reasoning:} Image uploads should not block on third-party API latency.
+    \item \textbf{Design:} Express accepts upload $\to$ responds with 201 $\to$ triggers AI worker $\to$ updates record on completion.
+  \end{itemize}
+\begin{lstlisting}[language=JavaScript]
+async function generateAIDescription(filePath) {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const result = await model.generateContent([
+    "Provide a 1-sentence descriptive caption of this photo.",
+    { inlineData: { data: fs.readFileSync(filePath).toString("base64"), mimeType: "image/jpeg" } }
+  ]);
+  return result.response.text();
+}
+\end{lstlisting}
+\end{frame}
+
+% Slide 15: GeoPhoto - AI Error Handling & Quota Retries
+\begin{frame}{GeoPhoto: AI Error Handling \& Quota Retries}
+  \begin{itemize}
+    \item \textbf{Resilience:} Implemented exponential backoff for the Gemini API helper.
+    \item \textbf{Retry Algorithm:}
+      \begin{itemize}
+        \item Maximum of 3 attempts.
+        \item Delays double on each failure: 2s $\to$ 4s $\to$ 8s.
+        \item Catches 503 (high demand) and 429 (rate limits) errors.
+      \end{itemize}
+    \item \textbf{Fallback:} If AI generation fails completely, the database stores `NULL` for the description, allowing the user to click "Regenerate" manually.
+  \end{itemize}
+\end{frame}
+
+% Slide 16: GeoPhoto - Authentication & JWT Protection
+\begin{frame}{GeoPhoto: Authentication \& JWT Protection}
+  \begin{itemize}
+    \item \textbf{Authentication Flow:} Uses stateless JWT (JSON Web Tokens) generated on the server using `jsonwebtoken`.
+    \item \textbf{Token Contents:} Stores user ID and email payload safely.
+    \item \textbf{Client Implementation:} Tokens are saved in LocalStorage and dynamically attached to the `Authorization` header of all outgoing Axios requests.
+    \item \textbf{Route Guarding:} An Express middleware checks and decodes the JWT, attaching the user payload to `req.user`.
+  \end{itemize}
+\end{frame}
+
+% Slide 17: GeoPhoto - Cryptographic OTP Security
+\begin{frame}{GeoPhoto: Cryptographic OTP Security}
+  \begin{itemize}
+    \item \textbf{Vulnerability fixed:} Replaced standard pseudo-random `Math.random()` generation with Node's cryptographic CSRNG.
+    \item \textbf{Secure Implementation:}
+      \begin{itemize}
+        \item Uses `crypto.randomInt(10000000, 100000000)` to ensure high-entropy, unpredictable 8-digit codes.
+        \item Protects the verification flow from prediction attacks.
+      \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \textbf{Secure Code Generation Flow:} \\
+    `crypto.randomInt` $\to$ Sandbox Email Send $\to$ In-Memory Store Map
+  \end{center}
+\end{frame}
+
+% Slide 18: GeoPhoto - Code Lifecycle & Expiry
+\begin{frame}{GeoPhoto: Code Lifecycle \& Expiry}
+  \begin{itemize}
+    \item \textbf{Verification Lifecycle:}
+      \begin{itemize}
+        \item Codes are stored in an in-memory map mapped to lowercase email addresses.
+        \item Expire after exactly 10 minutes (`expiresAt = Date.now() + 10 * 60 * 1000`).
+        \item Instantly deleted on first validation or when evaluated as expired.
+      \end{itemize}
+    \item \textbf{Protection:} Eliminates replay attacks and blocks brute-force attempts on expired codes.
+  \end{itemize}
+\end{frame}
+
+% Slide 19: GeoPhoto - Image Optimization with Sharp
+\begin{frame}{GeoPhoto: Image Optimization with Sharp}
+  \begin{itemize}
+    \item \textbf{Orientation Bug:} Mobile uploads (iOS) often render rotated due to EXIF orientation metadata tags ignored by standard browsers.
+    \item \textbf{Backend Correction:}
+      \begin{itemize}
+        \item Integrated `sharp` to process uploaded buffers.
+        \item Executes `.rotate()` to auto-rotate image files using EXIF tags.
+        \item Resizes and compresses images to JPEG format at $80\%$ quality.
+      \end{itemize}
+    \item \textbf{Result:} Standardized rendering across all client platforms while saving up to $60\%$ server storage space.
+  \end{itemize}
+\end{frame}
+
+% Slide 20: GeoPhoto - Test Architecture (Vitest)
+\begin{frame}{GeoPhoto: Test Architecture (Vitest)}
+  \begin{itemize}
+    \item \textbf{Framework:} Used Vitest and React Testing Library for fast, parallel execution.
+    \item \textbf{Mocking Environment:}
+      \begin{itemize}
+        \item Mocks the DOM map APIs (such as Leaflet resize events and container bounds).
+        \item Mocks standard global browser APIs (`localStorage`, `URL.createObjectURL`).
+      \end{itemize}
+    \item \textbf{Validation Suite:} Covers form validation, error states, upload flows, comment listings, and detail view modals.
+  \end{itemize}
+\end{frame}
+
+% Slide 21: GeoPhoto - Mocking API Calls with MSW
+\begin{frame}[fragile]{GeoPhoto: Mocking API Calls with MSW}
+  \begin{itemize}
+    \item \textbf{Strategy:} Instead of mocking Axios directly, we use MSW (Mock Service Worker) to mock network requests at the API layer.
+  \end{itemize}
+\begin{lstlisting}[language=JavaScript]
+const handlers = [
+  http.get('http://localhost:3001/photos', () => {
+    return HttpResponse.json([
+      { id: 1, lat: 48.8566, lng: 2.3522, filename: 'paris.jpg', original_name: 'Paris Photo', ai_description: 'Eiffel Tower' }
+    ]);
+  })
+];
+const server = setupServer(...handlers);
+\end{lstlisting}
+  \begin{itemize}
+    \item \textbf{Benefit:} Eliminates test flakiness and avoids coupling test scripts to mock libraries.
+  \end{itemize}
+\end{frame}
+
+% Slide 22: Project 2 - World Cup 2026 Simulator
+\begin{frame}{Project 2: World Cup 2026 Tournament Simulator}
+  \begin{columns}
+    \begin{column}{0.6\textwidth}
+      \begin{itemize}
+        \item \textbf{Concept:} A statistical modeling application designed to simulate the expansion format (48 teams) of the FIFA World Cup 2026.
+        \item \textbf{Goal:} Predict championship, group advancement, and bracket match outcomes using historical data.
+        \item \textbf{Scope:} Simulating the full group phase plus the new Round of 32 knockout tree.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{center}
+        \textbf{Historical Data} \\
+        $\downarrow$ \\
+        \textbf{Poisson/Elo Model} \\
+        $\downarrow$ \\
+        \textbf{10k Monte Carlo runs}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Slide 23: World Cup Simulator - Key Features
+\begin{frame}{World Cup Simulator: Key Features}
+  \begin{itemize}
+    \item \textbf{Team Rating Engine:} Dynamically adjusts international Elo ratings.
+    \item \textbf{Match Predictor:} Evaluates head-to-head parameters to output goal probabilities.
+    \item \textbf{Bracket Simulator:} Automatically resolves 48-team schedules, including third-place group rules.
+    \item \textbf{Monte Carlo Simulations:} Runs large-scale iterations to evaluate probability convergence.
+    \item \textbf{Web UI Dashboard:} Renders interactive brackets and team progress tables.
+  \end{itemize}
+\end{frame}
+
+% Slide 24: World Cup Simulator - Tech Stack
+\begin{frame}{World Cup Simulator: Tech Stack}
+  \begin{table}
+    \centering
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Component} & \textbf{Technology} & \textbf{Description} \\
+      \midrule
+      Language & Python & Core Data Science Stack \\
+      Data Ingestion & Pandas / BeautifulSoup & Scrapers & ETL Pipelines \\
+      Math & NumPy / SciPy & Vectorized Math & Poisson \\
+      Modeling & Scikit-Learn & Machine Learning Classifiers \\
+      Dashboard & Streamlit / React & Interactive Bracket UI \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% Slide 25: World Cup Simulator - Mathematical Formulation
+\begin{frame}{World Cup Simulator: Mathematical Formulation}
+  Match goals are modeled as independent Poisson distributions:
+  \[ P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!} \]
+  Where:
+  \begin{itemize}
+    \item $P(X = k)$ is the probability of a team scoring $k$ goals.
+    \item $\lambda$ represents the expected goals calculated from:
+      \[ \lambda_{\text{Team A}} = \text{Attack Strength}_{\text{Team A}} \times \text{Defense Vulnerability}_{\text{Team B}} \times \text{Average Goals} \]
+  \end{itemize}
+  Draw probabilities are resolved by computing the cross-product of goal distributions.
+\end{frame}
+
+% Slide 26: World Cup Simulator - Elo Rating Engine
+\begin{frame}{World Cup Simulator: Elo Rating Engine}
+  Elo ratings are dynamically calculated based on historical match outcomes:
+  \[ R_{\text{new}} = R_{\text{old}} + K(W - W_e) \]
+  Where:
+  \begin{itemize}
+    \item $K$ is the match importance factor (higher multiplier for World Cup matches).
+    \item $W$ is the actual result (1 for win, 0.5 for draw, 0 for loss).
+    \item $W_e$ is the expected win probability based on rating difference:
+      \[ W_e = \frac{1}{10^{-(R_A - R_B)/400} + 1} \]
+  \end{itemize}
+\end{frame}
+
+% Slide 27: World Cup Simulator - Group & Knockout Logic
+\begin{frame}{World Cup Simulator: Group \& Knockout Logic}
+  \begin{itemize}
+    \item \textbf{48-Team Expansion Complexity:}
+      \begin{itemize}
+        \item 12 groups of 4 teams.
+        \item Top 2 from each group advance.
+        \item The 8 best third-place teams advance to fill the Round of 32.
+      \end{itemize}
+    \item \textbf{Algorithm Design:}
+      \begin{itemize}
+        \item Simulates all group games, resolves rankings using tie-breakers (points, goal difference, goals scored).
+        \item Collects all third-place teams, sorts them, and routes them to correct knockout branches.
+        \item Knockout matches use extra time and penalty shootouts if a draw is simulated.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 28: World Cup Simulator - Data Scrapers & ETL
+\begin{frame}{World Cup Simulator: Data Scrapers \& ETL}
+  \begin{itemize}
+    \item \textbf{Sources:} Scraped historic FIFA match datasets and team rankings from FIFA APIs.
+    \item \textbf{ETL Pipeline:}
+      \begin{itemize}
+        \item Handles missing values and historical name changes.
+        \item Calculates rolling attack and defense strength values.
+        \item Normalizes home-advantage biases.
+      \end{itemize}
+    \item \textbf{Automation:} Pipeline runs on a schedule to fetch the latest international match results.
+  \end{itemize}
+\end{frame}
+
+% Slide 29: World Cup Simulator - Monte Carlo Engine
+\begin{frame}{World Cup Simulator: Monte Carlo Engine}
+  \begin{itemize}
+    \item \textbf{Problem:} Single tournament simulations have high variance and cannot represent real probabilities.
+    \item \textbf{Solution:} Run the entire World Cup bracket $10,000$ times.
+    \item \textbf{Process:}
+      \begin{itemize}
+        \item Aggregates the results of all iterations.
+        \item Calculates the percentage of times a team advances from groups, reaches the semi-finals, or wins the cup.
+        \item Generates probability distributions for tournament outcomes.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 30: World Cup Simulator - Performance Tuning
+\begin{frame}{World Cup Simulator: Performance Tuning}
+  \begin{itemize}
+    \item \textbf{Initial Bottleneck:} Pure Python loops took over 45 seconds to run 1,000 simulations.
+    \item \textbf{Optimizations:}
+      \begin{itemize}
+        \item Replaced loops with vectorized NumPy matrix operations.
+        \item Pre-computed team expected goals ($\lambda$) matrices.
+        \item Parallelized Monte Carlo iterations using Python's `multiprocessing`.
+      \end{itemize}
+    \item \textbf{Result:} Run time dropped from 45s to less than 1.5 seconds for $10,000$ complete simulations.
+  \end{itemize}
+\end{frame}
+
+% Slide 31: World Cup Simulator - Visualization Dashboard
+\begin{frame}{World Cup Simulator: Visualization Dashboard}
+  \begin{itemize}
+    \item \textbf{Interactive UI:} Streamlit dashboard displaying simulation outcomes.
+    \item \textbf{UI Components:}
+      \begin{itemize}
+        \item Interactive tournament brackets allowing manual score inputs.
+        \item Probability tables for team outcomes.
+        \item Interactive charts showing team championship odds.
+      \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \textbf{Interactive Dashboard Flow:} \\
+    User Settings $\to$ Run Simulation $\to$ Render Brackets \& Plots
+  \end{center}
+\end{frame}
+
+% Slide 32: Engineering Practices - Dependency Audits
+\begin{frame}{Engineering Practices: Dependency Audits}
+  \begin{itemize}
+    \item \textbf{Security Auditing:} Implemented automated dependency scanning using `npm audit` to detect vulnerabilities (CORS, path traversal).
+    \item \textbf{Resolving Vulnerabilities:}
+      \begin{itemize}
+        \item Added package `overrides` to pin secure sub-dependency versions (e.g., `esbuild@^0.25.0`).
+        \item Upgraded devDependencies (e.g., `vite` from 5.x to 6.x) to resolve high-severity advisories.
+      \end{itemize}
+    \item \textbf{Reproducible Builds:} Locked dependency versions in lockfiles for clean developer installs.
+  \end{itemize}
+\end{frame}
+
+% Slide 33: Engineering Practices - Git Workflows
+\begin{frame}{Engineering Practices: Git Workflows}
+  \begin{itemize}
+    \item \textbf{Philosophy:} Keeping a clean, linear git history is critical for large team review processes.
+    \item \textbf{Workflow:}
+      \begin{itemize}
+        \item Work is isolated in feature branches.
+        \item Integrates updates using `git pull --rebase` to avoid merge commits.
+        \item Uses descriptive commits based on Conventional Commit standards.
+      \end{itemize}
+    \item \textbf{Output:} Clean repository history, making commits easy to trace or revert.
+  \end{itemize}
+\end{frame}
+
+% Slide 34: Engineering Practices - Code Cleanliness
+\begin{frame}{Engineering Practices: Code Cleanliness}
+  \begin{itemize}
+    \item \textbf{Linter Integration:} Configured static code analysis to catch common syntax issues.
+    \item \textbf{Refactoring Guidelines:}
+      \begin{itemize}
+        \item Removed hardcoded parameters and moved configurations to environment variables.
+        \item Extracted code blocks into reusable utility functions.
+        \item Maintained clean file structures separating routes, middleware, and database layers.
+      \end{itemize}
+    \item \textbf{Documentation:} Comprehensive `README` and `STRATEGY` documents detail setup, routes, and design choices.
+  \end{itemize}
+\end{frame}
+
+% Slide 35: System Design - Scaling GeoPhoto to 10k+ Photos
+\begin{frame}{System Design: Scaling GeoPhoto to 10k+ Photos}
+  \begin{itemize}
+    \item \textbf{SQLite Limitations:} SQLite is limited for heavy write concurrencies and lacks native GIS support.
+    \item \textbf{Scale Target:} 10,000+ photo uploads, multiple concurrent users, and heavy search usage.
+    \item \textbf{Blueprint Upgrades:}
+      \begin{itemize}
+        \item Migrate database to PostgreSQL with PostGIS extension.
+        \item Move image storage from local disk to S3-compatible object storage.
+        \item Optimize map coordinate loading using viewport-bounding box queries.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Slide 36: System Design - PostgreSQL & PostGIS Spatial Indexes
+\begin{frame}{System Design: PostgreSQL \& PostGIS Spatial Indexes}
+  \begin{itemize}
+    \item \textbf{Spatial Data Type:} Store coordinates as `GEOGRAPHY(Point, 4326)` instead of separate float columns.
+    \item \textbf{Spatial Indexing:} Create a GIST index on coordinates:
+      \[ \text{CREATE INDEX idx\_photos\_geom ON photos USING GIST(geom);} \]
+    \item \textbf{Why GIST:} Standard B-Tree indexes cannot handle multi-dimensional queries. GIST indexes group spatial boundaries into hierarchical structures, speeding up regional searches.
+  \end{itemize}
+\end{frame}
+
+% Slide 37: System Design - Viewport Bounding Box Queries
+\begin{frame}[fragile]{System Design: Viewport Bounding Box Queries}
+  \begin{itemize}
+    \item \textbf{Concept:} The client only requests markers that fit inside the current visible map boundary.
+    \item \textbf{Implementation:} Map emits `moveend` event $\to$ gets bounding box coordinates $\to$ requests API data.
+  \end{itemize}
+\begin{lstlisting}[language=SQL]
+SELECT id, filename, lat, lng, ai_description 
+FROM photos 
+WHERE geom && ST_MakeEnvelope(west, south, east, north, 4326);
+\end{lstlisting}
+  \begin{itemize}
+    \item \textbf{Benefit:} Reduces API query size from 10k+ rows to just a few dozen, keeping client maps responsive.
+  \end{itemize}
+\end{frame}
+
+% Slide 38: System Design - S3 Object Storage & CDN
+\begin{frame}{System Design: S3 Object Storage \& CDN}
+  \begin{itemize}
+    \item \textbf{The Bottleneck:} Serving image assets directly through the Express API server blocks request loops and limits server CPU resources.
+    \item \textbf{Production Storage Architecture:}
+  \end{itemize}
+  \begin{center}
+    Client Upload $\to$ API Presigned URL $\to$ Direct Upload to AWS S3 / Cloudflare R2
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Delivery:} Front the storage bucket with a CDN (Cloudflare or CloudFront) to cache images closer to users and offload server traffic.
+  \end{itemize}
+\end{frame}
+
+% Slide 39: System Design - Secure Cookie-Based Auth Rotation
+\begin{frame}{System Design: Secure Cookie-Based Auth Rotation}
+  \begin{itemize}
+    \item \textbf{Current Risk:} Storing JWTs in `LocalStorage` makes them vulnerable to Cross-Site Scripting (XSS) attacks.
+    \item \textbf{Production Auth Design:}
+      \begin{itemize}
+        \item Store short-lived access tokens in memory or secure HttpOnly cookies.
+        \item Store long-lived refresh tokens in HttpOnly, Secure, SameSite cookies.
+        \item Implement refresh token rotation on the backend to detect token theft.
+      \end{itemize}
+  \item \textbf{Benefit:} Protects user sessions from client-side script inspection.
+  \end{itemize}
+\end{frame}
+
+% Slide 40: Conclusion & Open Q&A
+\begin{frame}{Conclusion \& Open Q\&A}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{GeoPhoto Core Highlights:}
+      \begin{itemize}
+        \item Decoupled React/Express setup.
+        \item Secure authentication & AI worker queues.
+        \item Comprehensive test coverage.
+      \end{itemize}
+      \textbf{World Cup Simulator Highlights:}
+      \begin{itemize}
+        \item Poisson goal distributions & Elo rating calculations.
+        \item Vectorized Monte Carlo engine.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+        \Huge \textbf{Thank You!} \\
+        \vspace{1cm}
+        \large \textbf{Questions \& Answers}
+      \end{center>
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
