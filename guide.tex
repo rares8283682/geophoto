@@ -1,0 +1,193 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+
+\definecolor{primary}{RGB}{30, 41, 59}
+\definecolor{secondary}{RGB}{79, 70, 229}
+\definecolor{teal}{RGB}{13, 148, 136}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{secondary}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{teal},
+  breaklines=true
+}
+
+\title{\textbf{Interview Preparation Guide: Full-Stack Geospatial Engineering}\\
+\large Technical Test Deep-Dive \& Q\&A Strategy for HyLight}
+\author{Prepared for: Rares Olteanu}
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction: The Core Narrative}
+When presenting your technical test to \textbf{Jules Sanglier} (Fullstack Engineer at HyLight) and the team, your core narrative should be:
+\begin{quote}
+\textit{``I built a local geospatial prototype that works end-to-end (React + Express + SQLite + Gemini AI), but I built it with the strict security, testing, and scalability standards of a production-grade cloud application (Stateless JWT, CSRNG token generation, MSW integration testing, and a PostGIS/S3 scaling blueprint).''}
+\end{quote}
+
+This guide explains all the technical concepts inside your project in simple terms, breaks down what each part of the slide deck means, and lists the exact questions Jules is likely to ask with recommended professional answers.
+
+---
+
+\section{Key Technical Concepts Explained Simply}
+You must understand these 6 core concepts because they form the foundation of your project and will be the main topics of technical discussion.
+
+\subsection{EXIF Metadata (Exchangeable Image File Format)}
+\begin{itemize}
+    \item \textbf{What it is:} Standard metadata embedded inside image files (JPEG/TIFF) by digital cameras and smartphones. It stores camera models, aperture, focal length, timestamps, and crucially, \textbf{GPS Coordinates (Latitude, Longitude, Altitude)}.
+    \item \textbf{How we used it:} In the frontend [UploadModal](file:///Users/raresolteanu/Desktop/HyLight-Tehnical%20test/geophotos/frontend/src/components/Upload/UploadModal.jsx), we used the library \texttt{exifr} to parse the image bytes locally in the browser.
+    \item \textbf{Why it is cool:} We don't upload the image first. We extract coordinates on the client, autofill the form, and only upload once coordinates are validated.
+\end{itemize}
+
+\subsection{JSON Web Tokens (JWT) \& Stateless Auth}
+\begin{itemize}
+    \item \textbf{What it is:} A secure way to transmit information between a client and a server as a JSON object. It is cryptographically signed using a secret key on the server.
+    \item \textbf{Why it is stateless:} The server does not store user sessions in its memory or database. When a user logs in, they receive a JWT. The frontend stores it in \texttt{LocalStorage} and sends it in the header of every HTTP request:
+    \lstinline[language=HTTP]{Authorization: Bearer <token>}
+    The server simply decrypts the token using `JWT_SECRET` to identify who the user is.
+\end{itemize}
+
+\subsection{CSRNG (Cryptographically Secure Random Number Generator)}
+\begin{itemize}
+    \item \textbf{What it is:} A random number generator that uses entropy (system noise) to generate numbers that are mathematically impossible to predict.
+    \item \textbf{Why we upgraded it:} The original code used \texttt{Math.random()} to generate 8-digit OTP codes. Pseudo-random functions like \texttt{Math.random()} are predictable, meaning a hacker could guess the next verification code. We replaced it with \textbf{\texttt{crypto.randomInt()}}, which is a CSRNG utility native to Node.js.
+\end{itemize}
+
+\subsection{MSW (Mock Service Worker) in Testing}
+\begin{itemize}
+    \item \textbf{What it is:} An API mocking library that intercepts outgoing HTTP requests at the network level rather than mocking JavaScript classes.
+    \item \textbf{Why it is better:} If you mock Axios directly (e.g., \texttt{vi.mock('axios')}), your tests are fragile and tightly coupled to the library you use. If you switch to Fetch, your tests break. With MSW, your components execute real HTTP requests, but MSW intercepts them and returns mock responses, verifying the API contracts reliably.
+\end{itemize}
+
+\subsection{PostgreSQL + PostGIS (Spatial Database)}
+\begin{itemize}
+    \item \textbf{What it is:} PostgreSQL is a production-grade relational database. \textbf{PostGIS} is an extension that adds support for geographic objects, allowing you to run SQL queries on points, lines, and polygons.
+    \item \textbf{Spatial Indexing (GIST):} Standard databases index numbers/text linearly (B-Trees). PostGIS uses GIST (Generalized Search Tree) which groups coordinates into 2D boxes. This makes bounding box queries or distance queries near-instant.
+\end{itemize}
+
+\subsection{Viewport Bounding Box Queries}
+\begin{itemize}
+    \item \textbf{What it is:} Instead of fetching 10,000 photos, the React map looks at its current screen borders (Southwest and Northeast coordinates) and requests only the photos that are visible inside that window.
+    \item \textbf{How it executes:} In the database, we query:
+    \lstinline[language=SQL]{WHERE lat BETWEEN south AND north AND lng BETWEEN west AND east}.
+\end{itemize}
+
+---
+
+\newpage
+\section{Slide-by-Slide Talking Points}
+Use this section to understand what you should explain out loud for each group of slides in the deck.
+
+\subsection{Introduction (Slides 1--5)}
+\begin{itemize}
+    \item \textbf{Focus:} Introduce the platform as a modular workspace.
+    \item \textbf{Talking Point:} Highlight that you chose a decoupled React SPA + Node.js Express API architecture. This ensures that the frontend can be deployed independently (e.g., on a CDN/Vercel) and the backend can be hosted on scalable containers.
+\end{itemize}
+
+\subsection{Ingestion \& Frontend (Slides 6--12)}
+\begin{itemize}
+    \item \textbf{Focus:} Ingestion usability and client-side maps.
+    \item \textbf{Talking Point:} Emphasize the EXIF parsing. Mention that for drone and airship inspections (like HyLight's), automated coordinate extraction is the baseline requirement. You also added the interactive Leaflet map marker clicks as a fallback for when coordinates are missing. Highlight Leaflet marker clustering to keep map movement at 60 FPS.
+\end{itemize}
+
+\subsection{Backend & AI Pipelines (Slides 13--21)}
+\begin{itemize}
+    \item \textbf{Focus:} Background jobs and API design.
+    \item \textbf{Talking Point:} Explain why the AI pipeline is \textbf{asynchronous}. You don't want the user's upload request to block on the Gemini API call. The server responds immediately with a HTTP 201 code, and a background promise generates the description. Mention the exponential backoff retry logic you implemented to handle transient API drops.
+\end{itemize}
+
+\subsection{Security, Auth \& Code Quality (Slides 22--26)}
+\begin{itemize}
+    \item \textbf{Focus:} Clean code and security.
+    \item \textbf{Talking Point:} Highlight that you audited the code for security vulnerabilities. You replaced \texttt{Math.random()} with \texttt{crypto.randomInt()}, implemented a 10-minute Time-To-Live (TTL) for verification codes, and ensured they are deleted from memory immediately upon validation (single-use token lifecycle). You also removed unused code and cleaned up hardcoded configurations into portable environment variables.
+\end{itemize}
+
+\subsection{Testing & CI/CD (Slides 27--31)}
+\begin{itemize}
+    \item \textbf{Focus:} How you verify code quality.
+    \item \textbf{Talking Point:} Explain that you set up unit testing with Vitest. Mention how you mocked the API layer using MSW to run network-independent tests, and how you resolved critical package security warnings by adding overrides in \texttt{package.json}.
+\end{itemize}
+
+\subsection{Production Scaling (Slides 32--37)}
+\begin{itemize}
+    \item \textbf{Focus:} Scaling to 10k+ images.
+    \item \textbf{Talking Point:} Explain how the application scales. Explain the PostGIS spatial indexes, bounding box filtering (\texttt{ST_MakeEnvelope}), S3 object storage presigned uploads (so image uploads go directly to S3 and bypass the Node.js server), and proximity queries (\texttt{ST_DWithin}) to find photos within 50 meters of a pipeline corridor.
+\end{itemize}
+
+---
+
+\newpage
+\section{Anticipated Interview Questions \& Winning Answers}
+Jules Sanglier has a strong background in software quality, clean code audits, testing, and integrations. Here are questions he will likely ask and how you should answer.
+
+\subsection{Q1: Why did you choose SQLite for the test, and how would you change it for production?}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``I chose SQLite/libSQL for the technical test to keep the project light, self-contained, and easy to run locally without requiring docker-compose or local database setup friction. 
+    However, SQLite locks the file on writes, which makes it unsuitable for concurrent uploads. For production, I would migrate to PostgreSQL with the PostGIS extension. PostGIS supports proper spatial geography types and GIST indexing, which are required for high-speed bounding box and proximity queries on millions of coordinate points.''}
+\end{itemize}
+
+\subsection{Q2: Why did you make the AI description generation asynchronous? What happens if the API is down?}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``A third-party API call (like Gemini) can take anywhere from 2 to 10 seconds. If we run it synchronously during the file upload request, the user's connection remains blocked, which ruins the user experience and leaves backend threads hanging. 
+    I designed it asynchronously: the Express API saves the database entry, responds with HTTP 201 immediately, and triggers the AI generator in the background. If the Gemini API is down, the code catches the exception and attempts an exponential backoff retry (up to 3 times). If all retries fail, the description defaults to NULL in the database, and the user can trigger manual regeneration later via the details modal. The core upload flow remains unaffected.''}
+\end{itemize}
+
+\subsection{Q3: Tell me about a major technical challenge you faced during testing and how you solved it.}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``One of the biggest challenges was testing Leaflet map components inside our headless Vitest JSDOM environment. Leaflet relies heavily on physical browser rendering APIs, such as map element offsets and container heights. Headless JSDOM doesn't support these, causing Leaflet to crash when mounting components.
+    I resolved this by writing custom global mocks inside our setup file to simulate the DOM maps, bypass Leaflet's container checks, and mock the map event listeners. This taught me that while unit tests are great for forms and state logic, interactive maps are far better tested using E2E tools like Playwright.''}
+\end{itemize}
+
+\subsection{Q4: What security issues did you find in the initial code, and how did you resolve them?}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``I addressed three main security areas:
+    First, the verification code generator used Math.random(), which is predictable. I replaced it with Node's native crypto.randomInt() CSRNG for high-entropy tokens.
+    Second, the code tokens had no expiry. I added a 10-minute TTL and single-use deletion immediately upon validation to prevent brute-force and replay attacks.
+    Third, I resolved package vulnerabilities (like esbuild and vite path traversals) using npm audit, upgrading Vite to version 6, and configuring package overrides in package.json.''}
+\end{itemize}
+
+\subsection{Q5: Explain the difference between mocking Axios directly vs. using Mock Service Worker (MSW).}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``Mocking Axios directly (e.g., using jest.mock) couples your unit tests to your specific HTTP library. If we decide to refactor our API client to use standard Fetch or another library, all our unit tests would break despite the UI behaving exactly the same.
+    MSW intercepts HTTP requests at the network level using Service Workers. The frontend code makes real Axios calls, and MSW captures them, returning simulated responses. This validates the actual API contract and keeps the tests completely decoupled from the frontend library choice.''}
+\end{itemize}
+
+\subsection{Q6: If an airship upload session returns 10,000 photos, how would you design the ingestion pipeline to prevent server crashes?}
+\begin{itemize}
+    \item \textbf{Good Answer:} 
+    \textit{``Uploading 10,000 high-resolution photos directly to a Node.js API server would crash the server due to memory consumption and disk I/O bottlenecks. 
+    In production, I would use S3 Presigned URLs. The client makes a light request to our API asking to upload a batch. The API returns presigned upload URLs for S3. The client then uploads the files directly to S3, bypassing our Express server entirely. 
+    Once uploaded, S3 triggers an event (e.g., via AWS Lambda or a message broker like Redis/BullMQ) to process the images, generate thumbnails, extract EXIF data, and update the database asynchronously in the background. The main API server only handles metadata metadata operations.''}
+\end{itemize}
+
+---
+
+\section{Technical Terms \& Buzzwords to Use in the Interview}
+Using these terms naturally will instantly establish you as a highly skilled full-stack engineer:
+\begin{itemize}
+    \item \textbf{Decoupled Client-Server:} Separation of frontend React SPA and backend REST API.
+    \item \textbf{Stateless Token Auth:} Sessions validated using JWT signatures instead of stateful server sessions.
+    \item \textbf{CSRNG (Cryptographically Secure Pseudo-Random Number Generator):} Using \texttt{crypto} instead of \texttt{Math.random()}.
+    \item \textbf{Token Lifecycle Security:} Implementing TTL (Time-To-Live) and single-use revocation patterns.
+    \item \textbf{Asynchronous Worker Queues:} Offloading heavy tasks (AI, image resizing) from the request-response loop.
+    \item \textbf{Network-Level API Interception:} Using MSW to test API contracts instead of mocking Axios.
+    \item \textbf{PostGIS Geography & Spatial Indexing:} Storing geographic coordinate shapes (`GEOGRAPHY`) and indexing them using `GIST` to speed up viewport bounding box calculations.
+\end{itemize}
+
+\end{document}
